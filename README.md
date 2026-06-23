@@ -43,7 +43,7 @@ ghc Main.hs -O2 -o zufallswerk
 
 ## Author
 
-GitHub: wildcardcharacter
+GitHub: Markus
 
 ## License
 
