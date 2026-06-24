@@ -12,7 +12,7 @@ It uses `/dev/urandom` as a source of randomness and provides a lightweight grap
 
 ## Features
 
-* Secure random password generation using `/dev/urandom`
+* Secure random password generation using `/dev/urandom` (CSPRNG)
 * Lightweight graphical user interface powered by YAD
 * Custom password length
 * Automatic clipboard integration via `xclip`
