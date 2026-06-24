@@ -47,6 +47,24 @@ splitPipe xs =
         []      -> []
         (_:ys)  -> splitPipe ys
 
+passwortStaerke :: Int -> String -> String
+passwortStaerke laenge zeichensatz
+    | laenge >= 16 && length gruppen >= 4 = "Sehr stark"
+    | laenge >= 12 && length gruppen >= 3 = "Stark"
+    | laenge >= 8  && length gruppen >= 2 = "Mittel"
+    | otherwise = "Schwach"
+  where
+    gruppen =
+        [ ()
+        | (aktiv, chars) <-
+            [ (any (`elem` klein) zeichensatz, klein)
+            , (any (`elem` gross) zeichensatz, gross)
+            , (any (`elem` zahlen) zeichensatz, zahlen)
+            , (any (`elem` sonder) zeichensatz, sonder)
+            ]
+        , aktiv
+        ]
+
 programmSchleife :: IO ()
 programmSchleife = do
     (code, eingabe, _) <- readProcessWithExitCode
@@ -91,13 +109,16 @@ programmSchleife = do
                                 else do
                                     passwort <- erzeugePasswort laenge zeichensatz
                                     kopiereZwischenablage passwort
-
+                                    let staerke = passwortStaerke laenge zeichensatz
                                     _ <- readProcessWithExitCode "yad"
                                         [ "--info"
                                         , "--no-markup"
                                         , "--title=Zufallswerk"
                                         , "--width=520"
-                                        , "--text=Passwort erzeugt und in die Zwischenablage kopiert:\n\n" ++ passwort
+                                        , "--text=Passwort erzeugt und in die Zwischenablage kopiert:\n\n"
+                                                ++ passwort
+                                                ++ "\n\nPasswortstärke: "
+                                                ++ staerke
                                         , "--button=Weiteres Passwort:0"
                                         , "--button=Beenden:1"
                                         ]
