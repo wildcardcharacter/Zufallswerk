@@ -1,10 +1,7 @@
-# Build files
 zufallswerk
 *.o
 *.hi
-
-# Editor files
+paket/
+*.deb
 .vscode/
-
-# Temporary files
 *~
