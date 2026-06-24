@@ -7,21 +7,20 @@ It uses `/dev/urandom` as a source of randomness and provides a lightweight grap
 ## Features
 
 * Secure random password generation using `/dev/urandom`
-* Graphical user interface with YAD
+* Lightweight graphical user interface powered by YAD
 * Custom password length
 * Automatic clipboard integration via `xclip`
 * Generate multiple passwords without restarting the application
-* Select which character sets to use:
+* Configurable character sets:
 
   * Lowercase letters
   * Uppercase letters
   * Numbers
   * Special characters
-* Validation to ensure at least one character set is selected
-
-## Screenshots
-
-Coming soon.
+* Password strength indicator
+* Input validation and error handling
+* Prevents generation of passwords with an empty character set
+* XFCE application menu integration
 
 ## Requirements
 
@@ -43,15 +42,9 @@ ghc Main.hs -O2 -o zufallswerk
 ./zufallswerk
 ```
 
-## Screenshots
-
-Coming soon.
-
 ## Roadmap
 
-* Password strength indicator
 * Custom application icon
-* XFCE desktop launcher
 * Debian package (.deb)
 * Additional customization options
 
@@ -60,11 +53,9 @@ Coming soon.
 Markus
 
 Website:
-
 https://wildcardcharacter.github.io
 
 Support development:
-
 https://buymeacoffee.com/wildcardcharacter
 
 ## License
