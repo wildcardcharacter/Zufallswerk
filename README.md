@@ -1,8 +1,12 @@
-# Zufallswerk
+<p align="center">
+  <img src="zufallswerk.png" width="150">
+</p>
 
-![Zufallswerk Logo](zufallswerk.png)
+<h1 align="center">Zufallswerk</h1>
 
-Zufallswerk is a simple and secure password generator written in Haskell for Linux.
+<p align="center">
+  A simple and secure password generator written in written in Haskell for Linux.
+</p>
 
 It uses `/dev/urandom` as a source of randomness and provides a lightweight graphical user interface based on YAD.
 
