@@ -1,12 +1,14 @@
 # Zufallswerk
 
-Zufallswerk is a simple password generator written in Haskell for Linux.
+Zufallswerk is a simple and secure password generator written in Haskell for Linux.
 
 ## Features
 
 * Secure random numbers generated from `/dev/urandom`
 * Graphical user interface using YAD
 * Custom password length
+* Automatic clipboard support via `xclip`
+* Generate multiple passwords without restarting the application
 * Supports:
 
   * Lowercase letters
@@ -19,7 +21,7 @@ Zufallswerk is a simple password generator written in Haskell for Linux.
 ### Debian / Ubuntu
 
 ```bash
-sudo apt install ghc yad
+sudo apt install ghc yad xclip
 ```
 
 ## Build
@@ -34,28 +36,17 @@ ghc Main.hs -O2 -o zufallswerk
 ./zufallswerk
 ```
 
-## Planned Features
+## Roadmap
 
-* Clipboard integration
+* Character set selection
 * Password strength indicator
-* Advanced character set options
-* Custom application icon
+* Application icon
+* Desktop launcher
+* Debian package (.deb)
 
 ## Author
 
-GitHub: Markus
-
-## Author
-
-Markus
-
-Website:
-
-https://wildcardcharacter.github.io
-
-Support development:
-
-https://buymeacoffee.com/wildcardcharacter
+GitHub: wildcardcharacter
 
 ## License
 
