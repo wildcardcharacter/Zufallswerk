@@ -2,8 +2,8 @@ import qualified Data.ByteString as BS
 import Data.Word
 import System.IO
 import System.Process
-import System.Exit
 import Text.Read (readMaybe)
+import Control.Exception (SomeException, try)
 
 zeichen :: String
 zeichen =
@@ -23,37 +23,31 @@ erzeugePasswort laenge = do
     hClose h
     return (map byteZuZeichen (BS.unpack bytes))
 
-kopiereZwischenablage :: String -> IO ()
-kopiereZwischenablage passwort = do
-    (Just hin, _, _, _) <- createProcess
-        (proc "xclip" ["-selection", "clipboard"])
-            { std_in = CreatePipe }
-    hPutStr hin passwort
-    hClose hin
-
 programmSchleife :: IO ()
 programmSchleife = do
-    (code, eingabe, _) <- readProcessWithExitCode
-        "yad"
-        [ "--form"
-        , "--title=Zufallswerk"
-        , "--width=350"
-        , "--field=Passwortlänge"
-        , "20"
-        , "--button=Generieren:0"
-        , "--button=Beenden:1"
-        ]
-        ""
+    ergebnis <- try (
+        readProcess
+            "yad"
+            [ "--form"
+            , "--title=Zufallswerk"
+            , "--width=350"
+            , "--field=Passwortlänge"
+            , "20"
+            , "--button=Generieren:0"
+            , "--button=Beenden:1"
+            ]
+                        "") :: IO (Either SomeException String)
 
-    case code of
-        ExitFailure _ -> return ()
+    case ergebnis of
+        Left _ ->
+            return ()
 
-        ExitSuccess -> do
+        Right eingabe -> do
             let sauber = takeWhile (/= '|') eingabe
 
             case readMaybe sauber :: Maybe Int of
                 Nothing -> do
-                    _ <- readProcessWithExitCode "yad"
+                    _ <- readProcess "yad"
                         [ "--error"
                         , "--title=Fehler"
                         , "--text=Keine gültige Zahl."
@@ -64,7 +58,7 @@ programmSchleife = do
                 Just laenge ->
                     if laenge < 1 || laenge > 256
                     then do
-                        _ <- readProcessWithExitCode "yad"
+                        _ <- readProcess "yad"
                             [ "--error"
                             , "--title=Fehler"
                             , "--text=Bitte Länge zwischen 1 und 256 wählen."
@@ -73,16 +67,13 @@ programmSchleife = do
                         programmSchleife
                     else do
                         passwort <- erzeugePasswort laenge
-                        kopiereZwischenablage passwort
 
-                        _ <- readProcessWithExitCode "yad"
+                        _ <- readProcess "yad"
                             [ "--info"
                             , "--no-markup"
                             , "--title=Zufallswerk"
                             , "--width=500"
-                            , "--text=Passwort erzeugt und in die Zwischenablage kopiert:\n\n" ++ passwort
-                            , "--button=Weiteres Passwort:0"
-                            , "--button=Beenden:1"
+                            , "--text=Passwort erzeugt:\n\n" ++ passwort
                             ]
                             ""
 
