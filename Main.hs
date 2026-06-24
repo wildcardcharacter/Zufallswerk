@@ -5,23 +5,22 @@ import System.Process
 import System.Exit
 import Text.Read (readMaybe)
 
-zeichen :: String
-zeichen =
-    ['a'..'z']
-    ++ ['A'..'Z']
-    ++ ['0'..'9']
-    ++ "!@#$%&*-_?"
+klein, gross, zahlen, sonder :: String
+klein  = ['a'..'z']
+gross  = ['A'..'Z']
+zahlen = ['0'..'9']
+sonder = "!@#$%&*-_?"
 
-byteZuZeichen :: Word8 -> Char
-byteZuZeichen b =
-    zeichen !! (fromIntegral b `mod` length zeichen)
+byteZuZeichen :: String -> Word8 -> Char
+byteZuZeichen zeichensatz b =
+    zeichensatz !! (fromIntegral b `mod` length zeichensatz)
 
-erzeugePasswort :: Int -> IO String
-erzeugePasswort laenge = do
+erzeugePasswort :: Int -> String -> IO String
+erzeugePasswort laenge zeichensatz = do
     h <- openBinaryFile "/dev/urandom" ReadMode
     bytes <- BS.hGet h laenge
     hClose h
-    return (map byteZuZeichen (BS.unpack bytes))
+    return (map (byteZuZeichen zeichensatz) (BS.unpack bytes))
 
 kopiereZwischenablage :: String -> IO ()
 kopiereZwischenablage passwort = do
@@ -31,15 +30,40 @@ kopiereZwischenablage passwort = do
     hPutStr hin passwort
     hClose hin
 
+baueZeichensatz :: String -> String -> String -> String -> String
+baueZeichensatz k g z s =
+    concat
+        [ if k == "TRUE" then klein else ""
+        , if g == "TRUE" then gross else ""
+        , if z == "TRUE" then zahlen else ""
+        , if s == "TRUE" then sonder else ""
+        ]
+
+splitPipe :: String -> [String]
+splitPipe "" = []
+splitPipe xs =
+    let (a, rest) = break (== '|') xs
+    in a : case rest of
+        []      -> []
+        (_:ys)  -> splitPipe ys
+
 programmSchleife :: IO ()
 programmSchleife = do
     (code, eingabe, _) <- readProcessWithExitCode
         "yad"
         [ "--form"
         , "--title=Zufallswerk"
-        , "--width=350"
+        , "--width=420"
         , "--field=Passwortlänge"
         , "20"
+        , "--field=Kleinbuchstaben:CHK"
+        , "TRUE"
+        , "--field=Großbuchstaben:CHK"
+        , "TRUE"
+        , "--field=Zahlen:CHK"
+        , "TRUE"
+        , "--field=Sonderzeichen:CHK"
+        , "TRUE"
         , "--button=Generieren:0"
         , "--button=Beenden:1"
         ]
@@ -49,44 +73,49 @@ programmSchleife = do
         ExitFailure _ -> return ()
 
         ExitSuccess -> do
-            let sauber = takeWhile (/= '|') eingabe
+            let werte = splitPipe eingabe
 
-            case readMaybe sauber :: Maybe Int of
-                Nothing -> do
-                    _ <- readProcessWithExitCode "yad"
-                        [ "--error"
-                        , "--title=Fehler"
-                        , "--text=Keine gültige Zahl."
-                        ]
-                        ""
-                    programmSchleife
+            case werte of
+                (laengeText:k:g:z:s:_) ->
+                    case readMaybe laengeText :: Maybe Int of
+                        Nothing -> fehler "Keine gültige Zahl." >> programmSchleife
 
-                Just laenge ->
-                    if laenge < 1 || laenge > 256
-                    then do
-                        _ <- readProcessWithExitCode "yad"
-                            [ "--error"
-                            , "--title=Fehler"
-                            , "--text=Bitte Länge zwischen 1 und 256 wählen."
-                            ]
-                            ""
-                        programmSchleife
-                    else do
-                        passwort <- erzeugePasswort laenge
-                        kopiereZwischenablage passwort
+                        Just laenge ->
+                            if laenge < 1 || laenge > 256
+                            then fehler "Bitte Länge zwischen 1 und 256 wählen." >> programmSchleife
+                            else do
+                                let zeichensatz = baueZeichensatz k g z s
 
-                        _ <- readProcessWithExitCode "yad"
-                            [ "--info"
-                            , "--no-markup"
-                            , "--title=Zufallswerk"
-                            , "--width=500"
-                            , "--text=Passwort erzeugt und in die Zwischenablage kopiert:\n\n" ++ passwort
-                            , "--button=Weiteres Passwort:0"
-                            , "--button=Beenden:1"
-                            ]
-                            ""
+                                if null zeichensatz
+                                then fehler "Bitte mindestens einen Zeichensatz auswählen." >> programmSchleife
+                                else do
+                                    passwort <- erzeugePasswort laenge zeichensatz
+                                    kopiereZwischenablage passwort
 
-                        programmSchleife
+                                    _ <- readProcessWithExitCode "yad"
+                                        [ "--info"
+                                        , "--no-markup"
+                                        , "--title=Zufallswerk"
+                                        , "--width=520"
+                                        , "--text=Passwort erzeugt und in die Zwischenablage kopiert:\n\n" ++ passwort
+                                        , "--button=Weiteres Passwort:0"
+                                        , "--button=Beenden:1"
+                                        ]
+                                        ""
+
+                                    programmSchleife
+
+                _ -> fehler "Unerwartete Eingabe." >> programmSchleife
+
+fehler :: String -> IO ()
+fehler text = do
+    _ <- readProcessWithExitCode "yad"
+        [ "--error"
+        , "--title=Fehler"
+        , "--text=" ++ text
+        ]
+        ""
+    return ()
 
 main :: IO ()
 main = programmSchleife
