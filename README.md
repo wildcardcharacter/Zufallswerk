@@ -46,7 +46,15 @@ ghc Main.hs -O2 -o zufallswerk
 
 ## Author
 
-GitHub: wildcardcharacter
+Markus
+
+Website:
+
+https://wildcardcharacter.github.io
+
+Support development:
+
+https://buymeacoffee.com/wildcardcharacter
 
 ## License
 
