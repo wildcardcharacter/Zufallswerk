@@ -1,0 +1,10 @@
+# Build files
+zufallswerk
+*.o
+*.hi
+
+# Editor files
+.vscode/
+
+# Temporary files
+*~
