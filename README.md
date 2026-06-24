@@ -19,6 +19,10 @@ It uses `/dev/urandom` as a source of randomness and provides a lightweight grap
   * Special characters
 * Validation to ensure at least one character set is selected
 
+## Screenshots
+
+Coming soon.
+
 ## Requirements
 
 ### Debian / Ubuntu
@@ -53,7 +57,15 @@ Coming soon.
 
 ## Author
 
-GitHub: wildcardcharacter
+Markus
+
+Website:
+
+https://wildcardcharacter.github.io
+
+Support development:
+
+https://buymeacoffee.com/wildcardcharacter
 
 ## License
 
