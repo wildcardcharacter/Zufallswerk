@@ -1,7 +1,10 @@
-zufallswerk
-*.o
-*.hi
-paket/
+build/
+
+# Debian packages
 *.deb
+packaging/build/
+
 .vscode/
+
+# Backup files
 *~

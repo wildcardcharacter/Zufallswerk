@@ -1,20 +1,18 @@
-<p align="center">
-  <img src="zufallswerk.png" width="150">
-</p>
-
-<h1 align="center">Zufallswerk</h1>
+# Zufallswerk
 
 <p align="center">
-  A simple and secure password generator written in written in Haskell for Linux.
+  <img src="assets/zufallswerk.png" width="150" alt="Zufallswerk Logo">
 </p>
 
-It uses `/dev/urandom` as a source of randomness and provides a lightweight graphical user interface based on YAD.
+A simple and secure password generator written in **Haskell** for Linux.
+
+Zufallswerk uses `/dev/urandom` as a source of randomness and provides a lightweight graphical user interface based on **YAD**.
 
 ## Features
 
-* Secure random password generation using `/dev/urandom` (CSPRNG)
+* Secure random password generation using `/dev/urandom`
 * Lightweight graphical user interface powered by YAD
-* Custom password length
+* Configurable password length
 * Automatic clipboard integration via `xclip`
 * Generate multiple passwords without restarting the application
 * Configurable character sets:
@@ -25,8 +23,21 @@ It uses `/dev/urandom` as a source of randomness and provides a lightweight grap
   * Special characters
 * Password strength indicator
 * Input validation and error handling
-* Prevents generation of passwords with an empty character set
 * XFCE application menu integration
+
+## Project Structure
+
+```text
+Zufallswerk/
+├── src/
+│   └── Main.hs
+├── assets/
+│   └── zufallswerk.png
+├── build/
+├── packaging/
+├── README.md
+└── .gitignore
+```
 
 ## Requirements
 
@@ -39,19 +50,25 @@ sudo apt install ghc yad xclip
 ## Build
 
 ```bash
-ghc Main.hs -O2 -o zufallswerk
+mkdir -p build
+
+ghc \
+    -outputdir build \
+    src/Main.hs \
+    -O2 \
+    -o build/zufallswerk
 ```
 
 ## Run
 
 ```bash
-./zufallswerk
+./build/zufallswerk
 ```
 
 ## Roadmap
 
-* Custom application icon
 * Debian package (.deb)
+* Custom application icon improvements
 * Additional customization options
 
 ## Author
