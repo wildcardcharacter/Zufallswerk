@@ -87,6 +87,10 @@ sudo dpkg -i zufallswerk_0.1.0_amd64.deb
 * Custom application icon improvements
 * Additional customization options
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## Author
 
 Markus
