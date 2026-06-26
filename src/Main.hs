@@ -6,7 +6,7 @@ import System.Process
 import Text.Read (readMaybe)
 
 version :: String
-version = "0.1"
+version = "0.1.0"
 
 klein, gross, zahlen, sonder :: String
 klein  = ['a'..'z']

@@ -78,7 +78,7 @@ Build the package with:
 The generated package can be installed using:
 
 ```bash
-sudo dpkg -i zufallswerk_0.1_amd64.deb
+sudo dpkg -i zufallswerk_0.1.0_amd64.deb
 ```
 
 ## Roadmap
