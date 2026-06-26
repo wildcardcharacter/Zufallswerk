@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Zufallswerk
+GenericName=Password Generator
+Comment=Secure password generator written in Haskell
+Exec=/usr/bin/zufallswerk
+Icon=zufallswerk
+Terminal=false
+Categories=Utility;System;
+Keywords=password;generator;security;haskell;
+StartupNotify=true

@@ -65,6 +65,22 @@ ghc \
 ./build/zufallswerk
 ```
 
+## Debian Package
+
+Zufallswerk includes a helper script to build a Debian package.
+
+Build the package with:
+
+```bash
+./build-deb.sh
+```
+
+The generated package can be installed using:
+
+```bash
+sudo dpkg -i zufallswerk_0.1_amd64.deb
+```
+
 ## Roadmap
 
 * Debian package (.deb)

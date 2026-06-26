@@ -1,0 +1,12 @@
+Package: zufallswerk
+Version: 0.1
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Markus <wildcardcharacter@icloud.com>
+Depends: yad, xclip
+Homepage: https://wildcardcharacter.github.io
+Description: Secure password generator written in Haskell
+ Zufallswerk generates secure passwords using /dev/urandom.
+ It includes a graphical YAD interface, clipboard support,
+ password strength indicator and configurable character sets.
