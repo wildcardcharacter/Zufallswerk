@@ -5,26 +5,20 @@
 </p>
 
 <p align="center">
-
-**A simple and secure password generator for Linux written in Haskell.**
-
+  <strong>A simple and secure password generator for Linux written in Haskell.</strong>
 </p>
 
 <p align="center">
-
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
-![Platform](https://img.shields.io/badge/platform-Linux-orange)
-![Debian](https://img.shields.io/badge/Debian-13-A81D33?logo=debian)
-![Language](https://img.shields.io/badge/language-Haskell-5D4F85?logo=haskell)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-Stable-success)
-
+  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/platform-Linux-orange" alt="Platform">
+  <img src="https://img.shields.io/badge/Debian-13-A81D33?logo=debian" alt="Debian">
+  <img src="https://img.shields.io/badge/language-Haskell-5D4F85?logo=haskell" alt="Haskell">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/status-Stable-success" alt="Status">
 </p>
 
 <p align="center">
-
-Secure • Lightweight • Open Source • Debian • XFCE
-
+  Secure • Lightweight • Open Source • Debian • XFCE
 </p>
 
 ---
