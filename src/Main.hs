@@ -102,6 +102,25 @@ zeigeErgebnis passwort staerke = do
         ExitSuccess   -> return True
         ExitFailure _ -> return False
 
+zeigeUeberDialog :: IO ()
+zeigeUeberDialog = do
+    _ <- readProcessWithExitCode
+        "yad"
+        [ "--info"
+        , "--no-markup"
+        , "--title=Über " ++ appTitel
+        , "--width=420"
+        , "--text=Zufallswerk " ++ version
+            ++ "\n\nSecure Password Generator"
+            ++ "\n\nWritten in Haskell"
+            ++ "\n\n© 2026 Markus"
+            ++ "\n\nhttps://wildcardcharacter.github.io"
+            ++ "\n\nMIT License"
+        , "--button=OK:0"
+        ]
+        ""
+    return ()
+
 zeigeHauptfenster :: IO (Maybe (Int, String))
 zeigeHauptfenster = do
     (code, eingabe, _) <- readProcessWithExitCode
@@ -120,11 +139,16 @@ zeigeHauptfenster = do
         , "--field=Sonderzeichen:CHK"
         , "TRUE"
         , "--button=Generieren:0"
+        , "--button=Über:2"
         , "--button=Beenden:1"
         ]
         ""
 
     case code of
+        ExitFailure 2 -> do
+            zeigeUeberDialog
+            zeigeHauptfenster
+
         ExitFailure _ ->
             return Nothing
 
