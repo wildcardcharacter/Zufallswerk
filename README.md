@@ -9,12 +9,12 @@
 </p>
 
 <p align="center">
-![Version](https://img.shields.io/badge/version-0.2.0--dev-blue)
-![Platform](https://img.shields.io/badge/platform-Linux-orange)
-![Debian](https://img.shields.io/badge/Debian-13-A81D33?logo=debian)
-![Language](https://img.shields.io/badge/language-Haskell-5D4F85?logo=haskell)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-Development-yellow)
+  <img src="https://img.shields.io/badge/version-0.2.0--dev-blue" alt="Version">
+  <img src="https://img.shields.io/badge/platform-Linux-orange" alt="Platform">
+  <img src="https://img.shields.io/badge/Debian-13-A81D33?logo=debian&logoColor=white" alt="Debian">
+  <img src="https://img.shields.io/badge/language-Haskell-5D4F85?logo=haskell&logoColor=white" alt="Haskell">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/status-Development-yellow" alt="Status">
 </p>
 
 <p align="center">
@@ -138,7 +138,6 @@ After installation, **Zufallswerk** is available from the XFCE application menu.
 ## Roadmap
 
 * SVG application icon
-* Password entropy (bits)
 * Save user preferences
 * English user interface
 * Additional password options
