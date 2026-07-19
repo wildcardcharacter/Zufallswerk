@@ -6,7 +6,7 @@ import System.Process
 import Text.Read (readMaybe)
 
 version :: String
-version = "0.1.0"
+version = "0.2.0"
 
 klein, gross, zahlen, sonder :: String
 klein  = ['a'..'z']
@@ -61,14 +61,17 @@ anzahlGruppen zeichensatz =
         , any (`elem` gruppe) zeichensatz
         ]
 
-passwortStaerke :: Int -> String -> String
-passwortStaerke laenge zeichensatz
-    | laenge >= 16 && gruppen >= 4 = "Sehr stark"
-    | laenge >= 12 && gruppen >= 3 = "Stark"
-    | laenge >= 8  && gruppen >= 2 = "Mittel"
-    | otherwise                    = "Schwach"
-  where
-    gruppen = anzahlGruppen zeichensatz
+berechneEntropie :: Int -> Int -> Double
+berechneEntropie laenge zeichensatzGroesse =
+    fromIntegral laenge * logBase 2 (fromIntegral zeichensatzGroesse)
+
+bewerteEntropie :: Double -> String
+bewerteEntropie bits
+    | bits < 40  = "Sehr schwach"
+    | bits < 60  = "Schwach"
+    | bits < 80  = "Mittel"
+    | bits < 100 = "Stark"
+    | otherwise  = "Sehr stark"
 
 fehler :: String -> IO ()
 fehler text = do
@@ -81,8 +84,8 @@ fehler text = do
         ""
     return ()
 
-zeigeErgebnis :: String -> String -> IO Bool
-zeigeErgebnis passwort staerke = do
+zeigeErgebnis :: String -> String -> Double -> IO Bool
+zeigeErgebnis passwort staerke entropie = do
     (code, _, _) <- readProcessWithExitCode
         "yad"
         [ "--info"
@@ -93,6 +96,9 @@ zeigeErgebnis passwort staerke = do
             ++ passwort
             ++ "\n\nPasswortstärke: "
             ++ staerke
+            ++ "\nEntropie: "
+            ++ show (round entropie)
+            ++ " Bit"
         , "--button=Weiteres Passwort:0"
         , "--button=Beenden:1"
         ]
@@ -196,9 +202,10 @@ programmSchleife = do
             passwort <- erzeugePasswort laenge zeichensatz
             kopiereZwischenablage passwort
 
-            let staerke = passwortStaerke laenge zeichensatz
+            let entropie = berechneEntropie laenge (length zeichensatz)
+            let staerke  = bewerteEntropie entropie
 
-            weiter <- zeigeErgebnis passwort staerke
+            weiter <- zeigeErgebnis passwort staerke entropie
 
             if weiter
             then programmSchleife
