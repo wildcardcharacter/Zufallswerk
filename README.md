@@ -129,7 +129,7 @@ sudo apt install ghc yad xclip
 
 ```bash
 ./build-deb.sh
-sudo dpkg -i zufallswerk_0.1.0_amd64.deb
+sudo dpkg -i zufallswerk_0.2.0_amd64.deb
 ```
 
 After installation, **Zufallswerk** is available from the XFCE application menu.
@@ -153,22 +153,31 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## Author
+## 🤝 Contributing
 
-**Markus Reichelt**
+Bug reports, feature requests and pull requests are always welcome.
 
-🌐 Website
-
-https://wildcardcharacter.github.io
-
-☕ Support development
-
-https://buymeacoffee.com/wildcardcharacter
+If you find a bug or have an idea for a new feature, feel free to open an issue.
 
 ---
 
-## License
+## 📄 License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the MIT License.
 
-See the [LICENSE](LICENSE) file for details.
+See **LICENSE.txt** for more information.
+
+---
+
+## 👤 Author
+
+**Markus**
+
+🌐 Website
+https://wildcardcharacter.github.io
+
+💻 GitHub
+https://github.com/wildcardcharacter
+
+☕ Support the project
+https://buymeacoffee.com/wildcardcharacter
