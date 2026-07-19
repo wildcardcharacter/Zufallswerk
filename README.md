@@ -5,26 +5,20 @@
 </p>
 
 <p align="center">
-
 **A simple and secure password generator for Linux written in Haskell.**
-
 </p>
 
 <p align="center">
-
 ![Version](https://img.shields.io/badge/version-0.2.0--dev-blue)
 ![Platform](https://img.shields.io/badge/platform-Linux-orange)
 ![Debian](https://img.shields.io/badge/Debian-13-A81D33?logo=debian)
 ![Language](https://img.shields.io/badge/language-Haskell-5D4F85?logo=haskell)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-Development-yellow)
-
 </p>
 
 <p align="center">
-
 Secure • Lightweight • Open Source • Debian • XFCE
-
 </p>
 
 ---
@@ -59,21 +53,21 @@ Secure • Lightweight • Open Source • Debian • XFCE
 ### Main Window
 
 <p align="center">
-  <img src="assets/screenshots/main-window.png" width="600" alt="Main Window">
+  <img src="assets/screenshots/main-window.png" width="520" alt="Main Window">
 </p>
 
 ### Password Strength
 
 <p align="center">
-  <img src="assets/screenshots/password-strong.png" width="600" alt="Strong Password">
+  <img src="assets/screenshots/password-strong.png" width="520" alt="Strong Password">
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/password-medium.png" width="600" alt="Medium Password">
+  <img src="assets/screenshots/password-medium.png" width="520" alt="Medium Password">
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/password-weak.png" width="600" alt="Weak Password">
+  <img src="assets/screenshots/password-weak.png" width="520" alt="Weak Password">
 </p>
 
 ### About
