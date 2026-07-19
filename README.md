@@ -31,6 +31,7 @@ Secure • Lightweight • Open Source • Debian • XFCE
 * Selectable character sets
 * Automatic clipboard integration via **xclip**
 * Password strength indicator
+* Entropy display
 * About dialog
 * XFCE application menu integration
 * Debian package builder (`build-deb.sh`)
