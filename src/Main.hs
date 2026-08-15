@@ -113,7 +113,6 @@ zeigeUeberDialog = do
     _ <- readProcessWithExitCode
         "yad"
         [ "--info"
-        , "--no-markup"
         , "--title=Über " ++ appTitel
         , "--width=500"
         , "--text=Zufallswerk " ++ version
@@ -127,7 +126,9 @@ zeigeUeberDialog = do
             ++ "\n80 Bit  → 2^80 Kombinationen"
             ++ "\n128 Bit → 2^128 Kombinationen"
             ++ "\n\n© 2026 Markus"
-            ++ "\nhttps://wildcardcharacter.github.io"
+            ++ "\n\n<a href=\"https://wildcardcharacter.github.io\">🌐\160Website</a>"
+            ++ "\n<a href=\"https://github.com/wildcardcharacter/Zufallswerk\">💻\160GitHub</a>"
+            ++ "\n<a href=\"https://buymeacoffee.com/wildcardcharacter\">☕\160Support development</a>"
             ++ "\n\nMIT License"
         , "--button=OK:0"
         ]
