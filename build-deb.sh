@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME="zufallswerk"
-VERSION="0.2.2"
+VERSION="0.3.0"
 ARCH="amd64"
 DEB_NAME="${APP_NAME}_${VERSION}_${ARCH}.deb"
 
