@@ -115,12 +115,19 @@ zeigeUeberDialog = do
         [ "--info"
         , "--no-markup"
         , "--title=Über " ++ appTitel
-        , "--width=420"
+        , "--width=500"
         , "--text=Zufallswerk " ++ version
             ++ "\n\nSecure Password Generator"
             ++ "\n\nWritten in Haskell"
+            ++ "\n\nWas bedeutet Entropie?"
+            ++ "\n\nDie Entropie beschreibt die Anzahl möglicher"
+            ++ "\nKombinationen eines Passworts. Je höher der"
+            ++ "\nWert, desto größer der theoretische Suchraum."
+            ++ "\n\nBeispiele:"
+            ++ "\n80 Bit  → 2^80 Kombinationen"
+            ++ "\n128 Bit → 2^128 Kombinationen"
             ++ "\n\n© 2026 Markus"
-            ++ "\n\nhttps://wildcardcharacter.github.io"
+            ++ "\nhttps://wildcardcharacter.github.io"
             ++ "\n\nMIT License"
         , "--button=OK:0"
         ]
