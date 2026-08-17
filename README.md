@@ -23,6 +23,16 @@ Secure • Lightweight • Open Source • Debian • XFCE
 
 ---
 
+<p align="center">
+🚀 Zufallswerk has been almost completely reworked!
+
+The project has received a major overhaul with a cleaner interface and several new features, including password entropy, password strength analysis, German passphrases with up to 36 words, improved random generation, and a new application icon.
+
+The Debian package has also been improved and now includes the required German word list.
+
+Zufallswerk 0.3.0 is getting closer! 🔐
+</p>
+
 ## Features
 
 * Secure random password generation using `/dev/urandom`
