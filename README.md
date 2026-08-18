@@ -17,13 +17,11 @@
   <img src="https://img.shields.io/badge/license-MIT-green">
 </p>
 
-<p>
-  <a href="#features">Features</a> ·
-  <a href="#screenshots">Screenshots</a> ·
-  <a href="#installation">Installation</a> ·
-  <a href="#building-from-source">Build</a> ·
-  <a href="#why-haskell">Why Haskell?</a>
-</p>
+[Features](#features) ·
+[Screenshots](#screenshots) ·
+[Installation](#installation) ·
+[Build](#building-from-source) ·
+[Why Haskell?](#why-haskell)
 
 </div>
 
