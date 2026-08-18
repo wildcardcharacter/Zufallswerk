@@ -1,181 +1,421 @@
-# Zufallswerk
+<div align="center">
 
-<p align="center">
-  <img src="assets/logo/zufallswerk-256.png" width="140" alt="Zufallswerk Logo">
+<img src="assets/logo/zufallswerk-256.png" width="128" alt="Zufallswerk Logo">
+
+# 🔐 Zufallswerk
+
+### A modern password & passphrase generator for Linux
+
+**Secure · Lightweight · Open Source · Haskell · Linux**
+
+<p>
+  <img src="https://img.shields.io/badge/version-0.3.0-blue">
+  <img src="https://img.shields.io/badge/platform-Linux-orange">
+  <img src="https://img.shields.io/badge/Debian-13-A81D33?logo=debian">
+  <img src="https://img.shields.io/badge/Haskell-98-5e5086?logo=haskell">
+  <img src="https://img.shields.io/badge/GUI-YAD-lightgrey">
+  <img src="https://img.shields.io/badge/license-MIT-green">
 </p>
 
-<p align="center">
-**A simple and secure password generator for Linux written in Haskell.**
+<p>
+  <a href="#features">Features</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#building-from-source">Build</a> ·
+  <a href="#why-haskell">Why Haskell?</a>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/version-0.2.0--dev-blue" alt="Version">
-  <img src="https://img.shields.io/badge/platform-Linux-orange" alt="Platform">
-  <img src="https://img.shields.io/badge/Debian-13-A81D33?logo=debian&logoColor=white" alt="Debian">
-  <img src="https://img.shields.io/badge/language-Haskell-5D4F85?logo=haskell&logoColor=white" alt="Haskell">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-  <img src="https://img.shields.io/badge/status-Development-yellow" alt="Status">
-</p>
-
-<p align="center">
-Secure • Lightweight • Open Source • Debian • XFCE
-</p>
+</div>
 
 ---
 
-<p align="center">
-🚀 Zufallswerk has been almost completely reworked!
+## 🚀 About
 
-The project has received a major overhaul with a cleaner interface and several new features, including password entropy, password strength analysis, German passphrases with up to 36 words, improved random generation, and a new application icon.
+**Zufallswerk** is a lightweight password and passphrase generator for Linux, written in **Haskell**.
 
-The Debian package has also been improved and now includes the required German word list.
+Version **0.3.0** represents a major rework of the project. The application combines secure random generation, password strength analysis, entropy calculation, German passphrase generation and a clean graphical interface.
 
-Zufallswerk 0.3.0 is getting closer! 🔐
-</p>
+The goal is simple:
 
-## Features
+> **Generate strong passwords and memorable passphrases without unnecessary complexity.**
 
-* Secure random password generation using `/dev/urandom`
-* Lightweight graphical user interface powered by **YAD**
-* Configurable password length
-* Selectable character sets
-* Automatic clipboard integration via **xclip**
-* Password strength indicator
-* Entropy display
-* About dialog
-* XFCE application menu integration
-* Debian package builder (`build-deb.sh`)
-* Open Source (MIT License)
+Zufallswerk is designed primarily for Linux desktop environments such as **XFCE**, while remaining lightweight and easy to build from source.
 
 ---
 
-## Language
+## ✨ Features
 
-> **Current Status**
->
-> The graphical user interface is currently available **only in German**.
->
-> 🇬🇧 English language support is planned for a future release.
+### 🔐 Password Generation
+
+Generate random passwords with a configurable length of **1–256 characters**.
+
+Choose which character sets should be used:
+
+- Lowercase letters
+- Uppercase letters
+- Numbers
+- Special characters
+
+Random data is obtained from the Linux system source:
+
+```text
+/dev/urandom
+```
+
+### 🇩🇪 German Passphrase Generation
+
+Zufallswerk can generate German passphrases using a bundled dictionary containing **7,776 words**.
+
+Example:
+
+```text
+inhalt-drechsel-auseinander-langhaarig-lithium-abwesend
+```
+
+The word list is included with the project:
+
+```text
+assets/words/words_de.txt
+```
+
+The Debian package also installs the word list automatically.
+
+### 📊 Entropy Analysis
+
+Zufallswerk calculates the theoretical entropy of generated passwords and passphrases.
+
+Examples:
+
+```text
+Entropy: 25 Bit
+Entropy: 62 Bit
+Entropy: 78 Bit
+Entropy: 465 Bit
+Entropy: 1580 Bit
+```
+
+The application also provides a human-readable strength classification:
+
+```text
+Very weak
+Weak
+Medium
+Strong
+Very strong
+```
+
+### 📋 Clipboard Integration
+
+Generated passwords and passphrases can be copied directly to the clipboard using:
+
+```text
+xclip
+```
+
+### 🖥️ Lightweight GUI
+
+The graphical interface is built using **YAD** and provides:
+
+- Password generation controls
+- German passphrase generation
+- Entropy and strength information
+- Clipboard integration
+- About dialog
+- Continue / Back / Exit navigation
 
 ---
 
-## Screenshots
+## 🖼️ Screenshots
 
 ### Main Window
 
 <p align="center">
-  <img src="assets/screenshots/main-window.png" width="520" alt="Main Window">
+  <img src="assets/screenshots/main-window.png" width="520" alt="Zufallswerk main window">
 </p>
 
-### Password Strength
+### Password Generation
 
 <p align="center">
-  <img src="assets/screenshots/password-strong.png" width="520" alt="Strong Password">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/password-medium.png" width="520" alt="Medium Password">
+  <img src="assets/screenshots/password-weak.png" width="520" alt="Weak password example">
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/password-weak.png" width="520" alt="Weak Password">
+  <img src="assets/screenshots/password-medium.png" width="520" alt="Medium password example">
 </p>
 
-### About
+<p align="center">
+  <img src="assets/screenshots/password-strong.png" width="720" alt="Strong password example">
+</p>
+
+### German Passphrases
 
 <p align="center">
-  <img src="assets/screenshots/about.png" width="420" alt="About Dialog">
+  <img src="assets/screenshots/passphrase-weak.png" width="520" alt="German passphrase example">
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/passphrase-medium.png" width="520" alt="Medium German passphrase example">
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/passphrase-strong.png" width="520" alt="Strong German passphrase example">
+</p>
+
+### About Dialog
+
+<p align="center">
+  <img src="assets/screenshots/about.png" width="520" alt="About Zufallswerk">
 </p>
 
 ---
 
-## Project Structure
+## 🟣 Why Haskell?
+
+Zufallswerk is written in **Haskell**.
+
+Haskell is a functional programming language with a strong static type system, expressive syntax and a powerful approach to composing reliable software.
+
+For Zufallswerk, Haskell provides an interesting combination of:
+
+- Strong type safety
+- Clear and expressive code
+- Functional programming
+- Lightweight native executables
+- Excellent support for modelling application logic
+
+> **Haskell is not only for academic or experimental software.**
+
+Zufallswerk is a practical Linux desktop application written in Haskell and serves as a real-world project for exploring how functional programming can be applied to system utilities.
+
+The application deliberately keeps the architecture simple:
 
 ```text
-Zufallswerk/
-├── src/
-│   └── Main.hs
-├── assets/
-│   ├── logo/
-│   └── screenshots/
-├── build/
-├── packaging/
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-└── build-deb.sh
+Haskell
+   │
+   ├── Random generation
+   ├── Password & passphrase logic
+   ├── Entropy calculation
+   ├── Strength analysis
+   └── Application control
+          │
+          ▼
+        YAD
+          │
+          ▼
+     Linux Desktop
 ```
 
 ---
 
-## Requirements
+## 🛡️ Security Approach
 
-### Debian / Ubuntu
+Random bytes are read from:
 
-```bash
-sudo apt install ghc yad xclip
+```text
+/dev/urandom
 ```
+
+Password and passphrase generation happens locally. No online service is required.
+
+### Important
+
+Zufallswerk is an open-source personal project and has not undergone an independent security audit.
+
+For highly sensitive or regulated environments, use software that has undergone an appropriate security review.
 
 ---
 
-## Build
+## 📦 Installation
+
+### Debian Package
+
+Build the Debian package:
 
 ```bash
 ./build-deb.sh
 ```
 
+This creates:
+
+```text
+zufallswerk_0.3.0_amd64.deb
+```
+
+Install it with:
+
+```bash
+sudo dpkg -i zufallswerk_0.3.0_amd64.deb
+```
+
+If dependencies are missing:
+
+```bash
+sudo apt install -f
+```
+
+Launch:
+
+```bash
+zufallswerk
+```
+
 ---
 
-## Run
+## 🧰 Requirements
+
+For building from source:
+
+- Linux
+- GHC
+- YAD
+- xclip
+- `dpkg-deb` for Debian package creation
+
+On Debian / Ubuntu:
+
+```bash
+sudo apt install ghc yad xclip dpkg-dev
+```
+
+---
+
+## 🔨 Building from Source
+
+Clone the repository:
+
+```bash
+git clone https://github.com/wildcardcharacter/Zufallswerk.git
+cd Zufallswerk
+```
+
+Build:
+
+```bash
+ghc \
+  -outputdir build \
+  src/Main.hs \
+  -O2 \
+  -o build/zufallswerk
+```
+
+Run:
 
 ```bash
 ./build/zufallswerk
 ```
 
----
-
-## Debian Package
+Or build the Debian package:
 
 ```bash
 ./build-deb.sh
-sudo dpkg -i zufallswerk_0.2.0_amd64.deb
 ```
 
-After installation, **Zufallswerk** is available from the XFCE application menu.
+---
+
+## 🔢 Central Version Management
+
+The application version is stored centrally in:
+
+```text
+VERSION
+```
+
+For example:
+
+```text
+0.3.0
+```
+
+The version is loaded by the application and used throughout the graphical interface and Debian build process.
+
+This avoids maintaining the application version manually in multiple locations.
 
 ---
 
-## Roadmap
+## 📁 Project Structure
 
-* SVG application icon
-* Save user preferences
-* English user interface
-* Additional password options
-* Improved About dialog
-* Automatic GitHub Releases
+```text
+Zufallswerk/
+├── assets/
+│   ├── logo/
+│   │   └── zufallswerk-256.png
+│   ├── screenshots/
+│   │   ├── main-window.png
+│   │   ├── password-weak.png
+│   │   ├── password-medium.png
+│   │   ├── password-strong.png
+│   │   ├── passphrase-weak.png
+│   │   ├── passphrase-medium.png
+│   │   ├── passphrase-strong.png
+│   │   └── about.png
+│   └── words/
+│       └── words_de.txt
+├── packaging/
+│   └── DEBIAN/
+├── src/
+│   └── Main.hs
+├── VERSION
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── build-deb.sh
+└── .gitignore
+```
 
 ---
 
-## Changelog
+## 🧩 Technology
 
-See [CHANGELOG.md](CHANGELOG.md).
+| Component | Technology |
+|---|---|
+| Language | Haskell |
+| GUI | YAD |
+| Random source | `/dev/urandom` |
+| Clipboard | xclip |
+| Packaging | Debian / dpkg-deb |
+| Target platform | Linux |
+| Desktop focus | XFCE |
+| License | MIT |
+
+---
+
+## 🗺️ Roadmap
+
+Possible future improvements include:
+
+- 🌍 English user interface
+- 🌐 Additional language support
+- 🎨 Further GUI improvements
+- 🖼️ Additional icon formats
+- ⚙️ More configurable generation options
+- 📦 Improved release automation
+- 🧪 More automated testing
+- 🔐 Additional security-related improvements
+
+---
+
+## 📋 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 
 ---
 
 ## 🤝 Contributing
 
-Bug reports, feature requests and pull requests are always welcome.
+Contributions, ideas, bug reports and feature requests are welcome.
 
-If you find a bug or have an idea for a new feature, feel free to open an issue.
+1. Open an issue
+2. Describe the problem or feature
+3. Include relevant system information
+4. Pull requests are welcome
 
 ---
 
-## 📄 License
+## ❤️ Support
 
-This project is licensed under the MIT License.
+If you like Zufallswerk or find the project useful:
 
-See **LICENSE.txt** for more information.
+☕ **[Buy Me a Coffee](https://buymeacoffee.com/wildcardcharacter)**
 
 ---
 
@@ -183,11 +423,24 @@ See **LICENSE.txt** for more information.
 
 **Markus**
 
-🌐 Website
-https://wildcardcharacter.github.io
+🌐 [Website](https://wildcardcharacter.github.io)
 
-💻 GitHub
-https://github.com/wildcardcharacter
+💻 [GitHub](https://github.com/wildcardcharacter)
 
-☕ Support the project
-https://buymeacoffee.com/wildcardcharacter
+---
+
+## 📄 License
+
+Zufallswerk is released under the **MIT License**.
+
+See [LICENSE](LICENSE) for the complete license text.
+
+---
+
+<div align="center">
+
+### 🔐 Generate locally. Stay in control.
+
+**Zufallswerk · Haskell · Linux · Open Source**
+
+</div>

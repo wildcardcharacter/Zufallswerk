@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME="zufallswerk"
-VERSION="0.3.0"
+VERSION="$(cat VERSION)"
 ARCH="amd64"
 DEB_NAME="${APP_NAME}_${VERSION}_${ARCH}.deb"
 
@@ -23,10 +23,13 @@ mkdir -p packaging/DEBIAN
 mkdir -p packaging/usr/bin
 mkdir -p packaging/usr/share/applications
 mkdir -p packaging/usr/share/icons/hicolor/256x256/apps
+mkdir -p packaging/usr/share/zufallswerk/words
 
 echo "==> Dateien kopieren"
 cp build/${APP_NAME} packaging/usr/bin/
-cp assets/logo/zufallswerk-256.png packaging/usr/share/icons/hicolor/256x256/apps/
+cp assets/logo/zufallswerk-256.png \
+   packaging/usr/share/icons/hicolor/256x256/apps/zufallswerk.png
+cp assets/words/words_de.txt packaging/usr/share/zufallswerk/words/
 
 cat > packaging/usr/share/applications/zufallswerk.desktop <<EOF
 [Desktop Entry]
