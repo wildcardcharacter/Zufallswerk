@@ -17,12 +17,6 @@
   <img src="https://img.shields.io/badge/license-MIT-green">
 </p>
 
-[Features](#features) ·
-[Screenshots](#screenshots) ·
-[Installation](#installation) ·
-[Build](#building-from-source) ·
-[Why Haskell?](#why-haskell)
-
 </div>
 
 ---
