@@ -201,13 +201,11 @@ Haskell
 
 ## 🛡️ Security Approach
 
-Random bytes are read from:
+### 🔐 `/dev/urandom`
 
-```text
-/dev/urandom
-```
+Zufallswerk uses Linux's `/dev/urandom` to obtain random data from the operating system. These random bytes are used to generate passwords and passphrases locally and unpredictably.
 
-Password and passphrase generation happens locally. No online service is required.
+No online service is required.
 
 ### Important
 
