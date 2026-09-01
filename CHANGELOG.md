@@ -4,6 +4,31 @@ All notable changes to **Zufallswerk** are documented in this file.
 
 ---
 
+## [2.0.0] — 2026-08-24
+
+### 🚀 Major Rework
+
+Zufallswerk 2.0 introduces a completely reworked GTK-based graphical interface and a cleaner internal project structure.
+
+### ✨ Added
+
+- 🖥️ New GTK-based graphical user interface
+- 🔐 Separate password generation window
+- 🎛️ Configurable character sets for password generation
+- 📏 Password length selection
+- 📋 Automatic clipboard copying of generated passwords
+- ✅ Visual confirmation after copying a password
+- 📝 Improved display for long generated passwords
+- 🧩 Separated application logic into dedicated Haskell modules
+- 💾 Added project backup script
+
+### 🧹 Improvements
+
+- Reworked the main application window
+- Removed duplicate password settings from the main window
+- Improved project structure
+- Prepared the project for further GTK-based development
+
 ## [0.3.0] — 2026-08-18
 
 ### 🚀 Major Rework

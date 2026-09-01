@@ -1,0 +1,35 @@
+window {
+    background-color: #f5f5f5;
+}
+
+#card {
+    background-color: #e8e8e8;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+#card:hover {
+    background-color: #dedede;
+}
+
+#card-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#card-description {
+    font-size: 15px;
+}
+
+#header-title {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#header-subtitle {
+    font-size: 18px;
+}
+
+.footer-button {
+    font-size: 15px;
+}

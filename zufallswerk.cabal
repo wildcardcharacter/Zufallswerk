@@ -1,0 +1,25 @@
+cabal-version: 3.0
+name: zufallswerk
+version: 2.0.0
+build-type: Simple
+
+executable zufallswerk
+    main-is: Main.hs
+    other-modules:
+        Zufallswerk.Core
+        Zufallswerk.Password
+        Zufallswerk.Passphrase
+        Paths_zufallswerk
+    hs-source-dirs: app src
+    default-language: Haskell2010
+
+    build-depends:
+        base >= 4.17 && < 5,
+        bytestring,
+        gi-gtk,
+        gi-gdk,
+        text,
+        process,
+        directory
+
+    ghc-options: -Wall
