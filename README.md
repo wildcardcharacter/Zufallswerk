@@ -21,15 +21,6 @@
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge">
 </p>
 
-<p align="center">
-  <a href="#features">Features</a> ·
-  <a href="#screenshots">Screenshots</a> ·
-  <a href="#requirements">Requirements</a> ·
-  <a href="#building-from-source">Build</a> ·
-  <a href="#debian-package">Debian Package</a> ·
-  <a href="#security">Security</a>
-</p>
-
 ---
 
 ## ✨ About
