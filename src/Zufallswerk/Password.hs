@@ -2,48 +2,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Zufallswerk.Password
-    ( klein
-    , gross
-    , zahlen
-    , sonder
-    , erzeugePasswort
-    , kopiereZwischenablage
-    , anzahlGruppen
-    , berechneEntropie
+    ( kopiereZwischenablage
     , zeigePasswortFenster
     ) where
 
-import qualified Data.ByteString as BS
 import qualified Zufallswerk.Core as Core
-import Data.Word
-import System.IO
 import System.Process
+import System.IO (hPutStr, hClose)
 import qualified Data.Text as T
 
 import qualified GI.Gtk as Gtk
 
-klein :: String
-klein = ['a'..'z']
-
-gross :: String
-gross = ['A'..'Z']
-
-zahlen :: String
-zahlen = ['0'..'9']
-
-sonder :: String
-sonder = "!@#$%&*-_?"
-
-byteZuZeichen :: String -> Word8 -> Char
-byteZuZeichen zeichensatz b =
-    zeichensatz !! (fromIntegral b `mod` length zeichensatz)
-
-erzeugePasswort :: Int -> String -> IO String
-erzeugePasswort laenge zeichensatz = do
-    h <- openBinaryFile "/dev/urandom" ReadMode
-    bytes <- BS.hGet h laenge
-    hClose h
-    return (map (byteZuZeichen zeichensatz) (BS.unpack bytes))
+import Zufallswerk.Language
 
 kopiereZwischenablage :: String -> IO ()
 kopiereZwischenablage text = do
@@ -54,24 +24,11 @@ kopiereZwischenablage text = do
     hPutStr hin text
     hClose hin
 
-anzahlGruppen :: String -> Int
-anzahlGruppen zeichensatz =
-    length
-        [ ()
-        | gruppe <- [klein, gross, zahlen, sonder]
-        , any (`elem` gruppe) zeichensatz
-        ]
-
-berechneEntropie :: Int -> Int -> Double
-berechneEntropie laenge zeichensatzGroesse =
-    fromIntegral laenge *
-    logBase 2 (fromIntegral zeichensatzGroesse)
-
-zeigePasswortFenster :: Gtk.Window -> IO ()
-zeigePasswortFenster parent = do
+zeigePasswortFenster :: Gtk.Window -> Sprache -> IO ()
+zeigePasswortFenster parent sprache = do
 
     window <- Gtk.new Gtk.Window
-        [ (#title Gtk.:= "Passwort generieren")
+        [ (#title Gtk.:= T.pack (passwortTitel sprache))
         , (#defaultWidth Gtk.:= 650)
         , (#defaultHeight Gtk.:= 450)
         , (#windowPosition Gtk.:= Gtk.WindowPositionCenterOnParent)
@@ -90,21 +47,21 @@ zeigePasswortFenster parent = do
         ]
 
     title <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "🔐  Passwort generieren")
+        [ (#label Gtk.:= T.pack (passwortTitel sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
     Gtk.boxPackStart box title False False 0
 
     description <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Erstelle ein sicheres Zufallspasswort.")
+        [ (#label Gtk.:= T.pack (passwortBeschreibung sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
     Gtk.boxPackStart box description False False 0
 
     lengthLabel <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Passwortlänge")
+        [ (#label Gtk.:= T.pack (passwortLaenge sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
@@ -120,29 +77,29 @@ zeigePasswortFenster parent = do
     Gtk.boxPackStart box lengthSpin False False 0
 
     charsetLabel <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Zeichensatz")
+        [ (#label Gtk.:= T.pack (passwortZeichensatz sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
     Gtk.boxPackStart box charsetLabel False False 0
 
     lowerCheck <- Gtk.new Gtk.CheckButton
-        [ (#label Gtk.:= "Kleinbuchstaben (a-z)")
+        [ (#label Gtk.:= T.pack (passwortKleinbuchstaben sprache))
         , (#active Gtk.:= True)
         ]
 
     upperCheck <- Gtk.new Gtk.CheckButton
-        [ (#label Gtk.:= "Großbuchstaben (A-Z)")
+        [ (#label Gtk.:= T.pack (passwortGrossbuchstaben sprache))
         , (#active Gtk.:= True)
         ]
 
     numberCheck <- Gtk.new Gtk.CheckButton
-        [ (#label Gtk.:= "Zahlen (0-9)")
+        [ (#label Gtk.:= T.pack (passwortZahlen sprache))
         , (#active Gtk.:= True)
         ]
 
     specialCheck <- Gtk.new Gtk.CheckButton
-        [ (#label Gtk.:= "Sonderzeichen (!@#$%&*-_?)")
+        [ (#label Gtk.:= T.pack (passwortSonderzeichen sprache))
         , (#active Gtk.:= True)
         ]
 
@@ -152,7 +109,7 @@ zeigePasswortFenster parent = do
     Gtk.boxPackStart box specialCheck False False 0
 
     generateButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "🔄 Passwort generieren")
+        [ (#label Gtk.:= T.pack (passwortGenerieren sprache))
         ]
 
     Gtk.boxPackStart box generateButton False False 0
@@ -197,23 +154,24 @@ zeigePasswortFenster parent = do
         sonderAktiv <- Gtk.toggleButtonGetActive specialCheck
 
         let zeichensatz =
-                (if kleinAktiv then klein else "")
-                ++ (if grossAktiv then gross else "")
-                ++ (if zahlenAktiv then zahlen else "")
-                ++ (if sonderAktiv then sonder else "")
+                (if kleinAktiv then Core.klein else "")
+                ++ (if grossAktiv then Core.gross else "")
+                ++ (if zahlenAktiv then Core.zahlen else "")
+                ++ (if sonderAktiv then Core.sonder else "")
 
         if null zeichensatz
             then do
                 buffer <- Gtk.textViewGetBuffer resultView
+
                 Gtk.textBufferSetText buffer
-                    "Bitte mindestens eine Option auswählen."
+                    (T.pack (passwortOptionFehlt sprache))
                     (-1)
 
                 Gtk.labelSetText statusLabel
-                    "⚠️ Bitte mindestens eine Option auswählen."
+                    (T.pack (passwortOptionFehltStatus sprache))
 
             else do
-                passwort <- erzeugePasswort
+                passwort <- Core.erzeugePasswort
                     (fromIntegral laenge)
                     zeichensatz
 
@@ -226,6 +184,7 @@ zeigePasswortFenster parent = do
                         Core.bewerteEntropie entropie
 
                 buffer <- Gtk.textViewGetBuffer resultView
+
                 Gtk.textBufferSetText
                     buffer
                     (T.pack passwort)
@@ -234,29 +193,18 @@ zeigePasswortFenster parent = do
                 kopiereZwischenablage passwort
 
                 Gtk.labelSetText statusLabel
-                    "✅ Passwort wurde in die Zwischenablage kopiert."
+                    (T.pack (passwortKopiert sprache))
 
                 Gtk.labelSetText entropyLabel
                     (T.pack
-                        ("📊 Entropie: "
-                        ++ show (round entropie :: Int)
-                        ++ " Bit"))
+                        (passwortEntropie sprache entropie))
 
                 Gtk.labelSetText strengthLabel
                     (T.pack
-                        ("💪 Stärke: "
-                        ++ staerke))
-
-                buffer <- Gtk.textViewGetBuffer resultView
-                Gtk.textBufferSetText buffer (T.pack passwort) (-1)
-
-                kopiereZwischenablage passwort
-
-                Gtk.labelSetText statusLabel
-                    "✅ Passwort wurde in die Zwischenablage kopiert."
+                        (passwortStaerke sprache staerke))
 
     closeButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "Schließen")
+        [ (#label Gtk.:= T.pack (passwortSchliessen sprache))
         ]
 
     _ <- Gtk.on closeButton #clicked $

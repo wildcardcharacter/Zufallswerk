@@ -9,6 +9,8 @@ executable zufallswerk
         Zufallswerk.Core
         Zufallswerk.Password
         Zufallswerk.Passphrase
+        Zufallswerk.Language
+        Zufallswerk.Settings
         Paths_zufallswerk
     hs-source-dirs: app src
     default-language: Haskell2010
@@ -20,6 +22,7 @@ executable zufallswerk
         gi-gdk,
         text,
         process,
-        directory
+        directory,
+        filepath
 
     ghc-options: -Wall

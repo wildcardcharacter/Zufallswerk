@@ -10,14 +10,15 @@ import qualified Data.Text as T
 
 import Zufallswerk.Core
 import Zufallswerk.Password (kopiereZwischenablage)
+import Zufallswerk.Language
 
-zeigePassphraseFenster :: Gtk.Window -> IO ()
-zeigePassphraseFenster parent = do
+zeigePassphraseFenster :: Gtk.Window -> Sprache -> IO ()
+zeigePassphraseFenster parent sprache = do
 
     window <- Gtk.new Gtk.Window
-        [ (#title Gtk.:= "Passphrase generieren")
+        [ (#title Gtk.:= T.pack (passphraseTitel sprache))
         , (#defaultWidth Gtk.:= 650)
-        , (#defaultHeight Gtk.:= 450)
+        , (#defaultHeight Gtk.:= 500)
         , (#windowPosition Gtk.:= Gtk.WindowPositionCenterOnParent)
         ]
 
@@ -34,25 +35,52 @@ zeigePassphraseFenster parent = do
         ]
 
     title <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "💬  Passphrase generieren")
+        [ (#label Gtk.:= T.pack (passphraseTitel sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
     Gtk.boxPackStart box title False False 0
 
     description <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Erstelle eine sichere deutsche Passphrase.")
+        [ (#label Gtk.:= T.pack (passphraseBeschreibung sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
     Gtk.boxPackStart box description False False 0
 
-    wordLabel <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Anzahl Wörter")
+    modeLabel <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (passphraseModus sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
-    Gtk.boxPackStart box wordLabel False False 0
+    Gtk.boxPackStart box modeLabel False False 0
+
+    wordRadio <- Gtk.new Gtk.RadioButton
+        [ (#label Gtk.:= T.pack (passphraseWoerter sprache))
+        ]
+
+    blockRadio <- Gtk.new Gtk.RadioButton
+        [ (#label Gtk.:= T.pack (passphraseZeichenbloecke sprache))
+        ]
+
+    Gtk.radioButtonJoinGroup blockRadio (Just wordRadio)
+
+    Gtk.boxPackStart box wordRadio False False 0
+    Gtk.boxPackStart box blockRadio False False 0
+
+    -- Einstellungen für Wörter
+
+    wordBox <- Gtk.new Gtk.Box
+        [ (#orientation Gtk.:= Gtk.OrientationVertical)
+        , (#spacing Gtk.:= 8)
+        ]
+
+    wordLabel <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (passphraseAnzahlWoerter sprache))
+        , (#halign Gtk.:= Gtk.AlignStart)
+        ]
+
+    Gtk.boxPackStart wordBox wordLabel False False 0
 
     wordSpin <- Gtk.spinButtonNewWithRange
         2
@@ -61,10 +89,57 @@ zeigePassphraseFenster parent = do
 
     Gtk.spinButtonSetValue wordSpin 4
 
-    Gtk.boxPackStart box wordSpin False False 0
+    Gtk.boxPackStart wordBox wordSpin False False 0
+
+    Gtk.boxPackStart box wordBox False False 0
+
+    -- Einstellungen für Zeichenblöcke
+
+    blockBox <- Gtk.new Gtk.Box
+        [ (#orientation Gtk.:= Gtk.OrientationVertical)
+        , (#spacing Gtk.:= 8)
+        ]
+
+    blockCountLabel <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (passphraseAnzahlBloecke sprache))
+        , (#halign Gtk.:= Gtk.AlignStart)
+        ]
+
+    Gtk.boxPackStart blockBox blockCountLabel False False 0
+
+    blockCountSpin <- Gtk.spinButtonNewWithRange
+        2
+        12
+        1
+
+    Gtk.spinButtonSetValue blockCountSpin 4
+
+    Gtk.boxPackStart blockBox blockCountSpin False False 0
+
+    blockLengthLabel <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (passphraseZeichenProBlock sprache))
+        , (#halign Gtk.:= Gtk.AlignStart)
+        ]
+
+    Gtk.boxPackStart blockBox blockLengthLabel False False 0
+
+    blockLengthSpin <- Gtk.spinButtonNewWithRange
+        2
+        12
+        1
+
+    Gtk.spinButtonSetValue blockLengthSpin 4
+
+    Gtk.boxPackStart blockBox blockLengthSpin False False 0
+
+    Gtk.boxPackStart box blockBox False False 0
+
+    Gtk.widgetHide blockBox
+
+    -- Trennzeichen
 
     separatorLabel <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Trennzeichen")
+        [ (#label Gtk.:= T.pack (passphraseTrennzeichen sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
@@ -77,8 +152,30 @@ zeigePassphraseFenster parent = do
 
     Gtk.boxPackStart box separatorEntry False False 0
 
+    -- Moduswechsel
+
+    _ <- Gtk.on wordRadio #toggled $ do
+        aktiv <- Gtk.toggleButtonGetActive wordRadio
+
+        if aktiv
+            then do
+                Gtk.widgetShow wordBox
+                Gtk.widgetHide blockBox
+            else return ()
+
+    _ <- Gtk.on blockRadio #toggled $ do
+        aktiv <- Gtk.toggleButtonGetActive blockRadio
+
+        if aktiv
+            then do
+                Gtk.widgetHide wordBox
+                Gtk.widgetShow blockBox
+            else return ()
+
+    -- Generieren
+
     generateButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "🔄 Passphrase generieren")
+        [ (#label Gtk.:= T.pack (passphraseGenerieren sprache))
         ]
 
     Gtk.boxPackStart box generateButton False False 0
@@ -115,67 +212,93 @@ zeigePassphraseFenster parent = do
     Gtk.boxPackStart box strengthLabel False False 0
 
     _ <- Gtk.on generateButton #clicked $ do
-        anzahlWoerter <- fromIntegral <$> Gtk.spinButtonGetValueAsInt wordSpin
         trennzeichen <- Gtk.entryGetText separatorEntry
 
-        wortlistenPfad <- findeWortliste
+        wordMode <- activeWordMode wordRadio
 
-        case wortlistenPfad of
-            Nothing ->
-                Gtk.labelSetText statusLabel
-                    "⚠️ Deutsche Wortliste wurde nicht gefunden."
+        if wordMode
+            then do
+                -- Wörter-Modus
 
-            Just pfad -> do
-                wortliste <- ladeWortliste pfad
+                anzahlWoerter <-
+                    fromIntegral <$>
+                    Gtk.spinButtonGetValueAsInt wordSpin
 
-                if null wortliste
-                    then
+                wortlistenPfad <- findeWortliste
+
+                case wortlistenPfad of
+                    Nothing ->
                         Gtk.labelSetText statusLabel
-                            "⚠️ Die Wortliste ist leer."
-                    else do
-                        passphrase <- erzeugePassphrase
-                            anzahlWoerter
-                            wortliste
-                            (T.unpack trennzeichen)
+                            (T.pack (passphraseWortlisteFehlt sprache))
 
-                        let entropie =
-                                berechnePassphraseEntropie
+                    Just pfad -> do
+                        wortliste <- ladeWortliste pfad
+
+                        if null wortliste
+                            then
+                                Gtk.labelSetText statusLabel
+                                    (T.pack (passphraseWortlisteLeer sprache))
+                            else do
+                                passphrase <- erzeugePassphrase
                                     anzahlWoerter
-                                    (length wortliste)
+                                    wortliste
+                                    (T.unpack trennzeichen)
 
-                            staerke =
-                                bewerteEntropie entropie
+                                let entropie =
+                                        berechnePassphraseEntropie
+                                            anzahlWoerter
+                                            (length wortliste)
 
-                        buffer <- Gtk.textViewGetBuffer resultView
+                                    staerke =
+                                        bewerteEntropie entropie
 
-                        Gtk.textBufferSetText
-                            buffer
-                            (T.pack passphrase)
-                            (-1)
+                                zeigeErgebnis
+                                    sprache
+                                    resultView
+                                    statusLabel
+                                    entropyLabel
+                                    strengthLabel
+                                    passphrase
+                                    entropie
+                                    staerke
 
-                        kopiereZwischenablage passphrase
+            else do
+                -- Zeichenblock-Modus
 
-                        Gtk.labelSetText statusLabel
-                            "✅ Passphrase wurde in die Zwischenablage kopiert."
+                anzahlBloecke <-
+                    fromIntegral <$>
+                    Gtk.spinButtonGetValueAsInt blockCountSpin
 
-                        Gtk.labelSetText entropyLabel
-                            (T.pack
-                                ("📊 Entropie: "
-                                ++ show (round entropie :: Int)
-                                ++ " Bit"))
+                blockLaenge <-
+                    fromIntegral <$>
+                    Gtk.spinButtonGetValueAsInt blockLengthSpin
 
-                        Gtk.labelSetText strengthLabel
-                            (T.pack
-                                ("💪 Stärke: "
-                                ++ staerke))
+                passphrase <- erzeugeZeichenblockPassphrase
+                    anzahlBloecke
+                    blockLaenge
+                    buchstabenUndZahlen
+                    (T.unpack trennzeichen)
 
-                        kopiereZwischenablage passphrase
+                let entropie =
+                        berechneEntropie
+                            (anzahlBloecke * blockLaenge)
+                            (length buchstabenUndZahlen)
 
-                        Gtk.labelSetText statusLabel
-                            "✅ Passphrase wurde in die Zwischenablage kopiert."
+                    staerke =
+                        bewerteEntropie entropie
+
+                zeigeErgebnis
+                    sprache
+                    resultView
+                    statusLabel
+                    entropyLabel
+                    strengthLabel
+                    passphrase
+                    entropie
+                    staerke
 
     closeButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "Schließen")
+        [ (#label Gtk.:= T.pack (passphraseSchliessen sprache))
         ]
 
     _ <- Gtk.on closeButton #clicked $
@@ -185,3 +308,47 @@ zeigePassphraseFenster parent = do
 
     Gtk.containerAdd window box
     Gtk.widgetShowAll window
+
+
+activeWordMode :: Gtk.RadioButton -> IO Bool
+activeWordMode radio =
+    Gtk.toggleButtonGetActive radio
+
+
+zeigeErgebnis
+    :: Sprache
+    -> Gtk.TextView
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> String
+    -> Double
+    -> String
+    -> IO ()
+zeigeErgebnis sprache resultView statusLabel entropyLabel strengthLabel
+    passphrase entropie staerke = do
+
+    buffer <- Gtk.textViewGetBuffer resultView
+
+    Gtk.textBufferSetText
+        buffer
+        (T.pack passphrase)
+        (-1)
+
+    kopiereZwischenablage passphrase
+
+    Gtk.labelSetText statusLabel
+        (T.pack (passphraseKopiert sprache))
+
+    Gtk.labelSetText entropyLabel
+        (T.pack
+            (passphraseEntropie sprache
+            ++ ": "
+            ++ show (round entropie :: Int)
+            ++ " Bit"))
+
+    Gtk.labelSetText strengthLabel
+        (T.pack
+            (passphraseStaerke sprache
+            ++ ": "
+            ++ staerkeText sprache staerke))

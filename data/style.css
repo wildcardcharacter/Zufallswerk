@@ -1,15 +1,17 @@
 window {
-    background-color: #f5f5f5;
+    background-color: @theme_bg_color;
+    color: @theme_fg_color;
 }
 
 #card {
-    background-color: #e8e8e8;
+    background-color: @theme_base_color;
+    color: @theme_text_color;
     border-radius: 14px;
     padding: 20px;
 }
 
 #card:hover {
-    background-color: #dedede;
+    background-color: @theme_selected_bg_color;
 }
 
 #card-title {

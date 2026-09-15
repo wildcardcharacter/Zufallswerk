@@ -10,17 +10,96 @@ import qualified GI.Gtk.Objects.CssProvider as CssProvider
 import qualified GI.Gtk.Objects.StyleContext as StyleContext
 import Zufallswerk.Password
 import Zufallswerk.Passphrase
+import Zufallswerk.Language
+import Zufallswerk.Settings
 import System.Process (callCommand)
 import Paths_zufallswerk (version)
 import Data.Version (showVersion)
+import Data.IORef
+import Control.Monad (filterM)
+import System.Directory (doesFileExist)
+
+aktualisiereHauptfenster :: Sprache
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Label
+    -> Gtk.Button
+    -> Gtk.Button
+    -> Gtk.Button
+    -> IO ()
+aktualisiereHauptfenster
+    sprache
+    title
+    subtitle
+    heading
+    description
+    passwordTitle
+    passwordDescription
+    passphraseTitle
+    passphraseDescription
+    settingsButton
+    aboutButton
+    exitButton = do
+
+    Gtk.labelSetText title
+        (T.pack (mainTitel sprache))
+
+    Gtk.labelSetText subtitle
+        (T.pack (mainUntertitel sprache))
+
+    Gtk.labelSetText heading
+        (T.pack (mainFrage sprache))
+
+    Gtk.labelSetText description
+        (T.pack (mainBeschreibung sprache))
+
+    Gtk.labelSetText passwordTitle
+        (T.pack (mainPasswort sprache))
+
+    Gtk.labelSetText passwordDescription
+        (T.pack (mainPasswortBeschreibung sprache))
+
+    Gtk.labelSetText passphraseTitle
+        (T.pack (mainPassphrase sprache))
+
+    Gtk.labelSetText passphraseDescription
+        (T.pack (mainPassphraseBeschreibung sprache))
+
+    Gtk.buttonSetLabel settingsButton
+        (T.pack (mainEinstellungen sprache))
+
+    Gtk.buttonSetLabel aboutButton
+        (T.pack (mainUeber sprache))
+
+    Gtk.buttonSetLabel exitButton
+        (T.pack (mainBeenden sprache))
 
 main :: IO ()
 main = do
+    sprache <- ladeSprache
+    spracheRef <- newIORef sprache
     _ <- Gtk.init Nothing
 
     -- CSS laden
     css <- CssProvider.cssProviderNew
-    CssProvider.cssProviderLoadFromPath css "data/style.css"
+
+    let cssPfade =
+            [ "data/style.css"
+            , "/usr/share/zufallswerk/style.css"
+            ]
+
+    cssVorhanden <- filterM doesFileExist cssPfade
+
+    case cssVorhanden of
+        (pfad:_) -> do
+            CssProvider.cssProviderLoadFromPath css (T.pack pfad)
+        [] -> do
+            putStrLn "Warnung: CSS-Datei wurde nicht gefunden."
 
     screen <- Gdk.screenGetDefault
 
@@ -66,12 +145,12 @@ main = do
         ]
 
     title <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Zufallswerk")
+        [ (#label Gtk.:= T.pack (mainTitel sprache))
         , (#halign Gtk.:= Gtk.AlignCenter)
         ]
 
     subtitle <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Sichere Passwörter & Passphrasen")
+        [ (#label Gtk.:= T.pack (mainUntertitel sprache))
         , (#halign Gtk.:= Gtk.AlignCenter)
         ]
 
@@ -97,11 +176,11 @@ main = do
         ]
 
     heading <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Was möchtest du erzeugen?")
+        [ (#label Gtk.:= T.pack (mainFrage sprache))
         ]
 
     description <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Wähle eine sichere Generierungsart.")
+        [ (#label Gtk.:= T.pack (mainBeschreibung sprache))
         ]
 
     Gtk.boxPackStart content heading False False 0
@@ -132,11 +211,11 @@ main = do
         ]
 
     passwordTitle <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Passwort")
+        [ (#label Gtk.:= T.pack (mainPasswort sprache))
         ]
 
     passwordDescription <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Sicheres Zufallspasswort erzeugen")
+        [ (#label Gtk.:= T.pack (mainPasswortBeschreibung sprache))
         ]
 
     passwordContext <- Gtk.widgetGetStyleContext passwordButton
@@ -150,8 +229,9 @@ main = do
 
     Gtk.containerAdd passwordButton passwordBox
 
-    _ <- Gtk.on passwordButton #clicked $
-        zeigePasswortFenster window
+    _ <- Gtk.on passwordButton #clicked $ do
+        aktuelleSprache <- readIORef spracheRef
+        zeigePasswortFenster window aktuelleSprache
 
     -- Passphrase
     passphraseButton <- Gtk.new Gtk.Button []
@@ -167,11 +247,11 @@ main = do
         ]
 
     passphraseTitle <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Passphrase")
+        [ (#label Gtk.:= T.pack (mainPassphrase sprache))
         ]
 
     passphraseDescription <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Deutsche Passphrase erzeugen")
+        [ (#label Gtk.:= T.pack (mainPassphraseBeschreibung sprache))
         ]
 
     passphraseContext <- Gtk.widgetGetStyleContext passphraseButton
@@ -184,8 +264,10 @@ main = do
     Gtk.boxPackStart passphraseBox passphraseDescription False False 0
 
     Gtk.containerAdd passphraseButton passphraseBox
-    _ <- Gtk.on passphraseButton #clicked $
-        zeigePassphraseFenster window
+
+    _ <- Gtk.on passphraseButton #clicked $ do
+        aktuelleSprache <- readIORef spracheRef
+        zeigePassphraseFenster window aktuelleSprache
 
     Gtk.boxPackStart cards passwordButton True True 0
     Gtk.boxPackStart cards passphraseButton True True 0
@@ -207,20 +289,41 @@ main = do
         , (#halign Gtk.:= Gtk.AlignEnd)
         ]
 
-    settingsButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "⚙ Einstellungen")
-        ]
-
     aboutButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "ℹ Über Zufallswerk")
+        [ (#label Gtk.:= T.pack (mainUeber sprache))
         ]
 
-    _ <- Gtk.on aboutButton #clicked $
-        zeigeUeberDialog window
+    _ <- Gtk.on aboutButton #clicked $ do
+        aktuelleSprache <- readIORef spracheRef
+        zeigeUeberDialog window aktuelleSprache
+
+    settingsButton <- Gtk.new Gtk.Button
+        [ (#label Gtk.:= T.pack (mainEinstellungen sprache))
+        ]
 
     exitButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "⏻ Beenden")
+        [ (#label Gtk.:= T.pack (mainBeenden sprache))
         ]
+
+    _ <- Gtk.on settingsButton #clicked $ do
+        aktuelleSprache <- readIORef spracheRef
+
+        zeigeEinstellungen window aktuelleSprache $ \neueSprache -> do
+            writeIORef spracheRef neueSprache
+
+            aktualisiereHauptfenster
+                neueSprache
+                title
+                subtitle
+                heading
+                description
+                passwordTitle
+                passwordDescription
+                passphraseTitle
+                passphraseDescription
+                settingsButton
+                aboutButton
+                exitButton
 
     Gtk.widgetSetName settingsButton "footer-button"
     Gtk.widgetSetName aboutButton "footer-button"
@@ -241,10 +344,10 @@ main = do
 
     Gtk.main
 
-zeigeUeberDialog :: Gtk.Window -> IO ()
-zeigeUeberDialog parent = do
+zeigeUeberDialog :: Gtk.Window -> Sprache -> IO ()
+zeigeUeberDialog parent sprache = do
     dialog <- Gtk.new Gtk.Dialog
-        [ (#title Gtk.:= "Über Zufallswerk")
+        [ (#title Gtk.:= T.pack (aboutTitel sprache))
         , (#transientFor Gtk.:= parent)
         , (#modal Gtk.:= True)
         , (#defaultWidth Gtk.:= 520)
@@ -272,26 +375,23 @@ zeigeUeberDialog parent = do
         ]
 
     subtitle <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Secure Password Generator · Written in Haskell")
+        [ (#label Gtk.:= T.pack (aboutUntertitel sprache))
         , (#halign Gtk.:= Gtk.AlignCenter)
         ]
 
     entropyTitle <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "Was bedeutet Entropie?")
+        [ (#label Gtk.:= T.pack (aboutEntropieTitel sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         ]
 
     entropyText <- Gtk.new Gtk.Label
-        [ (#label Gtk.:=
-            "Die Entropie beschreibt den theoretischen Suchraum.\n\n\
-            \Je höher der Wert, desto mehr Kombinationen sind möglich.\n\n\
-            \80 Bit → 2^80   |   128 Bit → 2^128   |   1580 Bit → 2^1580")
+        [ (#label Gtk.:= T.pack (aboutEntropieText sprache))
         , (#halign Gtk.:= Gtk.AlignStart)
         , (#wrap Gtk.:= True)
         ]
 
     copyright <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "© 2026 Markus")
+        [ (#label Gtk.:= T.pack (aboutCopyright sprache))
         , (#halign Gtk.:= Gtk.AlignCenter)
         ]
 
@@ -302,17 +402,16 @@ zeigeUeberDialog parent = do
         ]
 
     websiteButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "🌐 Website")
+        [ (#label Gtk.:= T.pack (aboutWebsite sprache))
         ]
 
     githubButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "💻 GitHub")
+        [ (#label Gtk.:= T.pack (aboutGitHub sprache))
         ]
 
     supportButton <- Gtk.new Gtk.Button
-        [ (#label Gtk.:= "☕ Support")
+        [ (#label Gtk.:= T.pack (aboutSupport sprache))
         ]
-
     _ <- Gtk.on websiteButton #clicked $
         callCommand "xdg-open https://wildcardcharacter.github.io"
 
@@ -327,7 +426,7 @@ zeigeUeberDialog parent = do
     Gtk.boxPackStart links supportButton False False 0
 
     license <- Gtk.new Gtk.Label
-        [ (#label Gtk.:= "MIT License")
+        [ (#label Gtk.:= T.pack (aboutLicense sprache))
         , (#halign Gtk.:= Gtk.AlignCenter)
         ]
 
@@ -342,7 +441,10 @@ zeigeUeberDialog parent = do
 
     Gtk.containerAdd contentArea box
 
-    _ <- Gtk.dialogAddButton dialog "OK" 0
+    _ <- Gtk.dialogAddButton
+        dialog
+        (T.pack (aboutOk sprache))
+        0
 
     _ <- Gtk.on dialog #response $ \_ ->
         Gtk.widgetDestroy dialog
