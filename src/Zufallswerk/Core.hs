@@ -4,6 +4,7 @@ import qualified Data.ByteString as BS
 import System.Directory (doesFileExist)
 import Control.Monad (filterM)
 import System.IO
+import Control.Exception (bracket)
 
 klein, gross, zahlen, sonder :: String
 klein  = ['a'..'z']
@@ -15,16 +16,20 @@ buchstabenUndZahlen :: String
 buchstabenUndZahlen = klein ++ gross ++ zahlen
 
 
-wortlistenPfade :: [FilePath]
-wortlistenPfade =
-    [ "assets/words/words_de.txt"
-    , "/usr/share/zufallswerk/words/words_de.txt"
+wortlistenPfade :: String -> [FilePath]
+wortlistenPfade sprache =
+    [ "assets/words/" ++ dateiname
+    , "/usr/share/zufallswerk/words/" ++ dateiname
     ]
+  where
+    dateiname = case sprache of
+        "en" -> "words_en_eff.txt"
+        _ -> "words_de.txt"
 
 
-findeWortliste :: IO (Maybe FilePath)
-findeWortliste = do
-    vorhandene <- filterM doesFileExist wortlistenPfade
+findeWortliste :: String -> IO (Maybe FilePath)
+findeWortliste sprache = do
+    vorhandene <- filterM doesFileExist (wortlistenPfade sprache)
     return $
         case vorhandene of
             (pfad:_) -> Just pfad
@@ -56,12 +61,10 @@ baueZeichensatz k g z s =
 erzeugePasswort :: Int -> String -> IO String
 erzeugePasswort laenge zeichensatz = do
     if null zeichensatz
-    then error "Zeichensatz darf nicht leer sein."
+    then ioError (userError "Zeichensatz darf nicht leer sein.")
     else do
-        h <- openBinaryFile "/dev/urandom" ReadMode
-        passwort <- mapM (const (zufallsZeichen h)) [1 .. laenge]
-        hClose h
-        return passwort
+        bracket (openBinaryFile "/dev/urandom" ReadMode) hClose $ \h ->
+            mapM (const (zufallsZeichen h)) [1 .. laenge]
     where
         maxWert = length zeichensatz
 
@@ -73,7 +76,7 @@ erzeugePasswort laenge zeichensatz = do
 zufallsIndexMitHandle :: Handle -> Int -> IO Int
 zufallsIndexMitHandle h maxWert = do
     if maxWert <= 0
-    then error "Ungültige maximale Indexgröße."
+    then ioError (userError "Ungültige maximale Indexgröße.")
     else do
         let maxZufallswert = 256 :: Int
             bereich = (maxZufallswert `div` maxWert) * maxWert
@@ -84,7 +87,7 @@ zufallsIndexMitHandle h maxWert = do
         byte <- BS.hGet h 1
 
         if BS.length byte /= 1
-        then error "Konnte keine Zufallsdaten lesen."
+        then ioError (userError "Konnte keine Zufallsdaten lesen.")
         else do
             let wert = fromIntegral (BS.head byte) :: Int
 
@@ -122,12 +125,10 @@ bewerteEntropie bits
 zufallsIndex :: Int -> IO Int
 zufallsIndex maxWert = do
     if maxWert <= 0
-    then error "Ungültige maximale Indexgröße."
+    then ioError (userError "Ungültige maximale Indexgröße.")
     else do
-        h <- openBinaryFile "/dev/urandom" ReadMode
-        index <- zufallsIndexMitHandle16 h maxWert
-        hClose h
-        return index
+        bracket (openBinaryFile "/dev/urandom" ReadMode) hClose $ \h ->
+            zufallsIndexMitHandle16 h maxWert
 
 zufallsIndexMitHandle16 :: Handle -> Int -> IO Int
 zufallsIndexMitHandle16 h maxWert = do
@@ -140,7 +141,7 @@ zufallsIndexMitHandle16 h maxWert = do
         bytes <- BS.hGet h 2
 
         if BS.length bytes /= 2
-        then error "Konnte keine Zufallsdaten lesen."
+        then ioError (userError "Konnte keine Zufallsdaten lesen.")
         else do
             let high = fromIntegral (BS.index bytes 0) :: Int
                 low  = fromIntegral (BS.index bytes 1) :: Int

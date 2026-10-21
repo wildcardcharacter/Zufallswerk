@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Zufallswerk.Passphrase
     ( zeigePassphraseFenster
@@ -7,18 +8,25 @@ module Zufallswerk.Passphrase
 
 import qualified GI.Gtk as Gtk
 import qualified Data.Text as T
+import Control.Exception (IOException, catch)
 
 import Zufallswerk.Core
 import Zufallswerk.Password (kopiereZwischenablage)
 import Zufallswerk.Language
+import Zufallswerk.Settings
+    ( ladePassphraseWortmodus
+    , speicherePassphraseWortmodus
+    , ladePassphraseWortlistenSprache
+    , speicherePassphraseWortlistenSprache
+    )
 
 zeigePassphraseFenster :: Gtk.Window -> Sprache -> IO ()
 zeigePassphraseFenster parent sprache = do
 
     window <- Gtk.new Gtk.Window
         [ (#title Gtk.:= T.pack (passphraseTitel sprache))
-        , (#defaultWidth Gtk.:= 650)
-        , (#defaultHeight Gtk.:= 500)
+        , (#defaultWidth Gtk.:= 600)
+        , (#defaultHeight Gtk.:= 520)
         , (#windowPosition Gtk.:= Gtk.WindowPositionCenterOnParent)
         ]
 
@@ -28,10 +36,10 @@ zeigePassphraseFenster parent sprache = do
     box <- Gtk.new Gtk.Box
         [ (#orientation Gtk.:= Gtk.OrientationVertical)
         , (#spacing Gtk.:= 15)
-        , (#marginStart Gtk.:= 30)
-        , (#marginEnd Gtk.:= 30)
-        , (#marginTop Gtk.:= 30)
-        , (#marginBottom Gtk.:= 30)
+        , (#marginStart Gtk.:= 24)
+        , (#marginEnd Gtk.:= 24)
+        , (#marginTop Gtk.:= 24)
+        , (#marginBottom Gtk.:= 24)
         ]
 
     title <- Gtk.new Gtk.Label
@@ -65,6 +73,9 @@ zeigePassphraseFenster parent sprache = do
 
     Gtk.radioButtonJoinGroup blockRadio (Just wordRadio)
 
+    wordModeByDefault <- ladePassphraseWortmodus
+    Gtk.toggleButtonSetActive (if wordModeByDefault then wordRadio else blockRadio) True
+
     Gtk.boxPackStart box wordRadio False False 0
     Gtk.boxPackStart box blockRadio False False 0
 
@@ -90,6 +101,23 @@ zeigePassphraseFenster parent sprache = do
     Gtk.spinButtonSetValue wordSpin 4
 
     Gtk.boxPackStart wordBox wordSpin False False 0
+
+    wordListLabel <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (passphraseWortliste sprache))
+        , (#halign Gtk.:= Gtk.AlignStart)
+        ]
+    germanWordList <- Gtk.new Gtk.RadioButton
+        [ (#label Gtk.:= T.pack (passphraseDeutsch sprache)) ]
+    englishWordList <- Gtk.new Gtk.RadioButton
+        [ (#label Gtk.:= T.pack (passphraseEnglisch sprache)) ]
+    Gtk.radioButtonJoinGroup englishWordList (Just germanWordList)
+    wordListLanguage <- ladePassphraseWortlistenSprache
+    Gtk.toggleButtonSetActive
+        (if wordListLanguage == "en" then englishWordList else germanWordList)
+        True
+    Gtk.boxPackStart wordBox wordListLabel False False 0
+    Gtk.boxPackStart wordBox germanWordList False False 0
+    Gtk.boxPackStart wordBox englishWordList False False 0
 
     Gtk.boxPackStart box wordBox False False 0
 
@@ -134,8 +162,6 @@ zeigePassphraseFenster parent sprache = do
 
     Gtk.boxPackStart box blockBox False False 0
 
-    Gtk.widgetHide blockBox
-
     -- Trennzeichen
 
     separatorLabel <- Gtk.new Gtk.Label
@@ -159,8 +185,9 @@ zeigePassphraseFenster parent sprache = do
 
         if aktiv
             then do
-                Gtk.widgetShow wordBox
+                Gtk.widgetShowAll wordBox
                 Gtk.widgetHide blockBox
+                speicherePassphraseWortmodus True
             else return ()
 
     _ <- Gtk.on blockRadio #toggled $ do
@@ -169,8 +196,17 @@ zeigePassphraseFenster parent sprache = do
         if aktiv
             then do
                 Gtk.widgetHide wordBox
-                Gtk.widgetShow blockBox
+                Gtk.widgetShowAll blockBox
+                speicherePassphraseWortmodus False
             else return ()
+
+    _ <- Gtk.on germanWordList #toggled $ do
+        aktiv <- Gtk.toggleButtonGetActive germanWordList
+        if aktiv then speicherePassphraseWortlistenSprache "de" else return ()
+
+    _ <- Gtk.on englishWordList #toggled $ do
+        aktiv <- Gtk.toggleButtonGetActive englishWordList
+        if aktiv then speicherePassphraseWortlistenSprache "en" else return ()
 
     -- Generieren
 
@@ -211,7 +247,14 @@ zeigePassphraseFenster parent sprache = do
     Gtk.boxPackStart box entropyLabel False False 0
     Gtk.boxPackStart box strengthLabel False False 0
 
-    _ <- Gtk.on generateButton #clicked $ do
+    entropyNote <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (entropieHinweis sprache))
+        , (#halign Gtk.:= Gtk.AlignStart)
+        , (#wrap Gtk.:= True)
+        ]
+    Gtk.boxPackStart box entropyNote False False 0
+
+    _ <- Gtk.on generateButton #clicked $ (do
         trennzeichen <- Gtk.entryGetText separatorEntry
 
         wordMode <- activeWordMode wordRadio
@@ -224,7 +267,9 @@ zeigePassphraseFenster parent sprache = do
                     fromIntegral <$>
                     Gtk.spinButtonGetValueAsInt wordSpin
 
-                wortlistenPfad <- findeWortliste
+                useEnglish <- Gtk.toggleButtonGetActive englishWordList
+                let listLanguage = if useEnglish then "en" else "de"
+                wortlistenPfad <- findeWortliste listLanguage
 
                 case wortlistenPfad of
                     Nothing ->
@@ -296,6 +341,8 @@ zeigePassphraseFenster parent sprache = do
                     passphrase
                     entropie
                     staerke
+        ) `catch` \(_ :: IOException) ->
+            Gtk.labelSetText statusLabel (T.pack (generierungsFehler sprache))
 
     closeButton <- Gtk.new Gtk.Button
         [ (#label Gtk.:= T.pack (passphraseSchliessen sprache))
@@ -304,10 +351,31 @@ zeigePassphraseFenster parent sprache = do
     _ <- Gtk.on closeButton #clicked $
         Gtk.widgetDestroy window
 
-    Gtk.boxPackEnd box closeButton False False 0
-
-    Gtk.containerAdd window box
+    scroll <- Gtk.scrolledWindowNew
+        (Nothing :: Maybe Gtk.Adjustment)
+        (Nothing :: Maybe Gtk.Adjustment)
+    Gtk.scrolledWindowSetPolicy
+        scroll
+        Gtk.PolicyTypeNever
+        Gtk.PolicyTypeAutomatic
+    Gtk.widgetSetHexpand scroll True
+    Gtk.widgetSetVexpand scroll True
+    Gtk.containerAdd scroll box
+    windowBox <- Gtk.new Gtk.Box
+        [ (#orientation Gtk.:= Gtk.OrientationVertical)
+        , (#spacing Gtk.:= 10)
+        , (#marginStart Gtk.:= 16)
+        , (#marginEnd Gtk.:= 16)
+        , (#marginTop Gtk.:= 16)
+        , (#marginBottom Gtk.:= 16)
+        ]
+    Gtk.boxPackStart windowBox scroll True True 0
+    Gtk.boxPackEnd windowBox closeButton False False 0
+    Gtk.containerAdd window windowBox
     Gtk.widgetShowAll window
+    if wordModeByDefault
+        then Gtk.widgetHide blockBox
+        else Gtk.widgetHide wordBox
 
 
 activeWordMode :: Gtk.RadioButton -> IO Bool
@@ -335,10 +403,9 @@ zeigeErgebnis sprache resultView statusLabel entropyLabel strengthLabel
         (T.pack passphrase)
         (-1)
 
-    kopiereZwischenablage passphrase
-
+    copied <- kopiereZwischenablage passphrase
     Gtk.labelSetText statusLabel
-        (T.pack (passphraseKopiert sprache))
+        (T.pack (either (const (clipboardFehler sprache)) (const (passphraseKopiert sprache)) copied))
 
     Gtk.labelSetText entropyLabel
         (T.pack

@@ -4,18 +4,23 @@
 module Zufallswerk.Settings
     ( ladeSprache
     , speichereSprache
+    , ladePasswortLaenge
+    , speicherePasswortLaenge
+    , ladePassphraseWortmodus
+    , speicherePassphraseWortmodus
+    , ladePassphraseWortlistenSprache
+    , speicherePassphraseWortlistenSprache
     , zeigeEinstellungen
     ) where
 
 import qualified GI.Gtk as Gtk
 import qualified Data.Text as T
-import Control.Exception (evaluate)
+import Control.Exception (IOException, evaluate, try)
 
 import Zufallswerk.Language
 
 import System.Directory
     ( getHomeDirectory
-    , doesFileExist
     , createDirectoryIfMissing
     )
 
@@ -23,6 +28,7 @@ import System.FilePath
     ( (</>)
     , takeDirectory
     )
+import Text.Read (readMaybe)
 
 
 -- =========================================================
@@ -34,36 +40,90 @@ settingsDatei = do
     home <- getHomeDirectory
     return (home </> ".config" </> "zufallswerk" </> "language")
 
+praeferenzDatei :: String -> IO FilePath
+praeferenzDatei name = do
+    home <- getHomeDirectory
+    return (home </> ".config" </> "zufallswerk" </> name)
+
+ladeDatei :: FilePath -> IO (Maybe String)
+ladeDatei datei = do
+    result <- try $ do
+        inhalt <- readFile datei
+        _ <- evaluate (length inhalt)
+        return inhalt
+    return (either (const Nothing) Just (result :: Either IOException String))
+
+speichereDatei :: FilePath -> String -> IO ()
+speichereDatei datei inhalt = do
+    let ordner = takeDirectory datei
+    _ <- try (createDirectoryIfMissing True ordner >> writeFile datei inhalt)
+        :: IO (Either IOException ())
+    return ()
+
 
 ladeSprache :: IO Sprache
 ladeSprache = do
     datei <- settingsDatei
-    existiert <- doesFileExist datei
-
-    if not existiert
-    then return Deutsch
-    else do
-        inhalt <- readFile datei
-        _ <- evaluate (length inhalt)
-
-        return $
-            case inhalt of
-                "English\n" -> English
-                "English"   -> English
-                _           -> Deutsch
+    inhalt <- ladeDatei datei
+    return $ case inhalt of
+        Just "English\n" -> English
+        Just "English" -> English
+        _ -> Deutsch
 
 
 speichereSprache :: Sprache -> IO ()
 speichereSprache sprache = do
     datei <- settingsDatei
-    let ordner = takeDirectory datei
+    speichereDatei datei $ case sprache of
+        Deutsch -> "Deutsch\n"
+        English -> "English\n"
 
-    createDirectoryIfMissing True ordner
+ladePasswortLaenge :: IO Int
+ladePasswortLaenge = do
+    datei <- praeferenzDatei "password-length"
+    inhalt <- ladeDatei datei
+    return $ case inhalt >>= readMaybe . trim of
+        Just wert | wert >= 4 && wert <= 256 -> wert
+        _ -> 16
+  where
+    trim = reverse . dropWhile (== '\n') . reverse
 
-    writeFile datei $
-        case sprache of
-            Deutsch -> "Deutsch\n"
-            English -> "English\n"
+speicherePasswortLaenge :: Int -> IO ()
+speicherePasswortLaenge wert = do
+    datei <- praeferenzDatei "password-length"
+    if wert >= 4 && wert <= 256
+        then speichereDatei datei (show wert ++ "\n")
+        else return ()
+
+ladePassphraseWortmodus :: IO Bool
+ladePassphraseWortmodus = do
+    datei <- praeferenzDatei "passphrase-mode"
+    inhalt <- ladeDatei datei
+    return (maybe True ((== "words") . trim) inhalt)
+  where
+    trim = reverse . dropWhile (== '\n') . reverse
+
+speicherePassphraseWortmodus :: Bool -> IO ()
+speicherePassphraseWortmodus wortmodus = do
+    datei <- praeferenzDatei "passphrase-mode"
+    speichereDatei datei (if wortmodus then "words\n" else "blocks\n")
+
+ladePassphraseWortlistenSprache :: IO String
+ladePassphraseWortlistenSprache = do
+    datei <- praeferenzDatei "passphrase-wordlist-language"
+    inhalt <- ladeDatei datei
+    return $ case fmap trim inhalt of
+        Just "en" -> "en"
+        _ -> "de"
+  where
+    trim = reverse . dropWhile (== '\n') . reverse
+
+speicherePassphraseWortlistenSprache :: String -> IO ()
+speicherePassphraseWortlistenSprache sprache = do
+    datei <- praeferenzDatei "passphrase-wordlist-language"
+    if sprache == "en" || sprache == "de"
+        then speichereDatei datei (sprache ++ "\n")
+        else return ()
 
 
 -- =========================================================

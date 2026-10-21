@@ -3,7 +3,7 @@ set -e
 
 APP_NAME="zufallswerk"
 VERSION="$(cat VERSION)"
-ARCH="amd64"
+ARCH="$(dpkg --print-architecture)"
 DEB_NAME="${APP_NAME}_${VERSION}_${ARCH}.deb"
 
 echo "==> Build-Ordner vorbereiten"
@@ -30,6 +30,7 @@ mkdir -p packaging/usr/bin
 mkdir -p packaging/usr/share/applications
 mkdir -p packaging/usr/share/icons/hicolor/256x256/apps
 mkdir -p packaging/usr/share/zufallswerk/words
+mkdir -p packaging/usr/share/doc/zufallswerk
 
 echo "==> Dateien kopieren"
 
@@ -41,6 +42,28 @@ cp "assets/logo/zufallswerk-256.png" \
 
 cp "assets/words/words_de.txt" \
    "packaging/usr/share/zufallswerk/words/words_de.txt"
+
+cp "assets/words/words_en_eff.txt" \
+   "packaging/usr/share/zufallswerk/words/words_en_eff.txt"
+
+cp "LICENSE" packaging/usr/share/doc/zufallswerk/LICENSE
+
+cat > packaging/usr/share/doc/zufallswerk/copyright <<'EOF'
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Zufallswerk
+Source: https://github.com/wildcardcharacter/Zufallswerk
+
+Files: *
+Copyright: 2026 Markus
+License: MIT
+ See /usr/share/doc/zufallswerk/LICENSE for the complete license text.
+
+Files: usr/share/zufallswerk/words/words_en_eff.txt
+Copyright: Joseph Bonneau and Electronic Frontier Foundation (EFF)
+Source: https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt
+License: CC-BY-3.0-US
+ https://creativecommons.org/licenses/by/3.0/us/
+EOF
 
 cp "data/style.css" \
    "packaging/usr/share/zufallswerk/style.css"
@@ -71,7 +94,7 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: Markus <wildcardcharacter@icloud.com>
-Depends: libgtk-3-0t64
+Depends: libgtk-3-0t64, xclip | wl-clipboard
 Homepage: https://wildcardcharacter.github.io
 Description: Secure password and passphrase generator
  Zufallswerk is a secure password and passphrase generator
@@ -94,6 +117,12 @@ chmod 644 \
 
 chmod 644 \
     packaging/usr/share/zufallswerk/words/words_de.txt
+
+chmod 644 \
+    packaging/usr/share/zufallswerk/words/words_en_eff.txt
+
+chmod 644 packaging/usr/share/doc/zufallswerk/copyright
+chmod 644 packaging/usr/share/doc/zufallswerk/LICENSE
 
 chmod 644 \
     packaging/usr/share/icons/hicolor/256x256/apps/zufallswerk.png

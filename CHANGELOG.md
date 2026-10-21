@@ -4,6 +4,29 @@ All notable changes to **Zufallswerk** are documented in this file.
 
 ---
 
+## [2.1.0] — 2026-10-21
+
+### Added
+
+- Automatic copy with non-blocking clipboard handling
+- English EFF Diceware word list with a remembered German/English selector
+- GitHub Release workflow for building and uploading architecture-specific Debian packages from version tags
+- Remembered password length and last-used word/block passphrase mode
+- Wayland-aware clipboard selection through `wl-copy`, with X11 `xclip` fallback
+- German documentation and GitHub Actions build/test workflow
+- Core logic tests for entropy, strength, character groups and separators
+
+### Improved
+
+- Random source handles are closed safely and input/read failures use IO errors
+- Clipboard process failures are reported in the generator window
+- Entropy explanations state the assumptions and limitations of the estimate
+- Debian packages declare `xclip` or `wl-clipboard` as the clipboard dependency
+- Debian packages include both word lists and attribution for the EFF list
+- Clipboard failures now identify the platform tools needed for clipboard support
+
+---
+
 ## [2.0.0] — 2026-08-24
 
 ### 🚀 Major Rework

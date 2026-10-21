@@ -6,6 +6,9 @@ module Zufallswerk.Language
     , passphraseWoerter
     , passphraseZeichenbloecke
     , passphraseAnzahlWoerter
+    , passphraseWortliste
+    , passphraseDeutsch
+    , passphraseEnglisch
     , passphraseAnzahlBloecke
     , passphraseZeichenProBlock
     , passphraseTrennzeichen
@@ -16,6 +19,9 @@ module Zufallswerk.Language
     , passphraseKopiert
     , passphraseEntropie
     , passphraseStaerke
+    , clipboardFehler
+    , generierungsFehler
+    , entropieHinweis
     , staerkeText
     , passwortTitel
     , passwortBeschreibung
@@ -101,6 +107,16 @@ passphraseAnzahlWoerter :: Sprache -> String
 passphraseAnzahlWoerter Deutsch = "Anzahl Wörter"
 passphraseAnzahlWoerter English = "Number of Words"
 
+passphraseWortliste :: Sprache -> String
+passphraseWortliste Deutsch = "Wortliste"
+passphraseWortliste English = "Word List"
+
+passphraseDeutsch :: Sprache -> String
+passphraseDeutsch _ = "Deutsch"
+
+passphraseEnglisch :: Sprache -> String
+passphraseEnglisch _ = "English"
+
 
 passphraseAnzahlBloecke :: Sprache -> String
 passphraseAnzahlBloecke Deutsch = "Anzahl Blöcke"
@@ -128,9 +144,9 @@ passphraseSchliessen English = "Close"
 
 passphraseWortlisteFehlt :: Sprache -> String
 passphraseWortlisteFehlt Deutsch =
-    "⚠️ Deutsche Wortliste wurde nicht gefunden."
+    "⚠️ Die ausgewählte Wortliste wurde nicht gefunden."
 passphraseWortlisteFehlt English =
-    "⚠️ German word list was not found."
+    "⚠️ The selected word list was not found."
 
 
 passphraseWortlisteLeer :: Sprache -> String
@@ -149,6 +165,18 @@ passphraseKopiert English =
 passphraseEntropie :: Sprache -> String
 passphraseEntropie Deutsch = "📊 Entropie"
 passphraseEntropie English = "📊 Entropy"
+
+clipboardFehler :: Sprache -> String
+clipboardFehler Deutsch = "⚠️ Zwischenablage nicht verfügbar. Installiere wl-clipboard (Wayland) oder xclip (X11)."
+clipboardFehler English = "⚠️ Clipboard unavailable. Install wl-clipboard (Wayland) or xclip (X11)."
+
+generierungsFehler :: Sprache -> String
+generierungsFehler Deutsch = "⚠️ Zufallsdaten konnten nicht gelesen werden."
+generierungsFehler English = "⚠️ Could not read random data."
+
+entropieHinweis :: Sprache -> String
+entropieHinweis Deutsch = "Theoretischer Wert bei gleichverteilten, unabhängigen Zufallswerten; keine Sicherheitsprüfung."
+entropieHinweis English = "Theoretical value assuming uniform, independent random choices; not a security audit."
 
 passphraseStaerke :: Sprache -> String
 passphraseStaerke Deutsch = "💪 Stärke"
@@ -337,14 +365,10 @@ aboutEntropieTitel English = "What is entropy?"
 
 aboutEntropieText :: Sprache -> String
 aboutEntropieText Deutsch =
-    "Die Entropie beschreibt den theoretischen Suchraum.\n\n\
-    \Je höher der Wert, desto mehr Kombinationen sind möglich.\n\n\
-    \Eine hohe Entropie bedeutet, dass ein Passwort schwerer durch Ausprobieren zu erraten ist."
+    "Die Entropie ist ein theoretischer Schätzwert. Bei Passwörtern wird eine gleichverteilte, unabhängige Wahl aus dem Zeichensatz angenommen; Wörter werden mit Zurücklegen aus der Liste gewählt. Nutzerverhalten und Implementierungsfehler werden nicht bewertet. Der Wert ersetzt keine unabhängige Sicherheitsprüfung."
 
 aboutEntropieText English =
-    "Entropy describes the theoretical search space.\n\n\
-    \The higher the value, the more possible combinations there are.\n\n\
-    \Higher entropy means that a password is harder to guess by trying possible combinations."
+    "Entropy is a theoretical estimate. Passwords assume uniform, independent choices from the character set; words are sampled from the list with replacement. User behavior and implementation flaws are not assessed. This value is not an independent security audit."
 
 aboutCopyright :: Sprache -> String
 aboutCopyright Deutsch = "© 2026 Markus"

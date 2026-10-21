@@ -1,4 +1,8 @@
 dist-newstyle/
+cabal.sandbox.config
+.cabal-sandbox/
+cabal.project.local
+.ghc.environment.*
 *.o
 *.hi
 *.dyn_o
@@ -6,6 +10,8 @@ dist-newstyle/
 *.prof
 *.aux
 *.hp
+*.tix
+hpc/
 *.eventlog
 build/
 packaging/build/

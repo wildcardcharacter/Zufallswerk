@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Zufallswerk.Password
     ( kopiereZwischenablage
@@ -8,21 +9,59 @@ module Zufallswerk.Password
 
 import qualified Zufallswerk.Core as Core
 import System.Process
+import System.Exit (ExitCode(..))
+import System.Directory (findExecutable)
+import System.Environment (lookupEnv)
 import System.IO (hPutStr, hClose)
+import Control.Exception (SomeException, IOException, try)
+import Control.Concurrent (forkIO, threadDelay)
 import qualified Data.Text as T
 
 import qualified GI.Gtk as Gtk
 
 import Zufallswerk.Language
+import Zufallswerk.Settings (ladePasswortLaenge, speicherePasswortLaenge)
 
-kopiereZwischenablage :: String -> IO ()
+kopiereZwischenablage :: String -> IO (Either String ())
 kopiereZwischenablage text = do
-    (Just hin, _, _, _) <- createProcess
-        (proc "xclip" ["-selection", "clipboard"])
-            { std_in = CreatePipe }
+    command <- clipboardCommand
+    case command of
+        Nothing -> return (Left "Install wl-clipboard on Wayland or xclip on X11")
+        Just (executable, arguments) -> do
+            result <- try $ do
+                (input, _, _, process) <- createProcess
+                    (proc executable arguments) { std_in = CreatePipe }
+                case input of
+                    Nothing -> ioError (userError "Clipboard process did not provide stdin")
+                    Just hin -> hPutStr hin text >> hClose hin
+                threadDelay 50000
+                exitCode <- getProcessExitCode process
+                case exitCode of
+                    Just (ExitFailure code) ->
+                        ioError (userError (executable ++ " exited with code " ++ show code))
+                    _ -> do
+                        -- Clipboard owners can stay alive until another app
+                        -- replaces the selection. Reap them off the GTK thread.
+                        _ <- forkIO (waitForProcess process >> return ())
+                        return ()
+            case result of
+                Left (exception :: SomeException) -> return (Left (show exception))
+                Right () -> return (Right ())
 
-    hPutStr hin text
-    hClose hin
+clipboardCommand :: IO (Maybe (FilePath, [String]))
+clipboardCommand = do
+    wayland <- lookupEnv "WAYLAND_DISPLAY"
+    let candidates = case wayland of
+            Just (_:_) -> [("wl-copy", []), ("xclip", ["-selection", "clipboard"])]
+            _ -> [("xclip", ["-selection", "clipboard"]), ("wl-copy", [])]
+    choose candidates
+  where
+    choose [] = return Nothing
+    choose ((name, arguments):rest) = do
+        found <- findExecutable name
+        case found of
+            Just path -> return (Just (path, arguments))
+            Nothing -> choose rest
 
 zeigePasswortFenster :: Gtk.Window -> Sprache -> IO ()
 zeigePasswortFenster parent sprache = do
@@ -30,7 +69,7 @@ zeigePasswortFenster parent sprache = do
     window <- Gtk.new Gtk.Window
         [ (#title Gtk.:= T.pack (passwortTitel sprache))
         , (#defaultWidth Gtk.:= 650)
-        , (#defaultHeight Gtk.:= 450)
+        , (#defaultHeight Gtk.:= 540)
         , (#windowPosition Gtk.:= Gtk.WindowPositionCenterOnParent)
         ]
 
@@ -72,7 +111,12 @@ zeigePasswortFenster parent sprache = do
         256
         1
 
-    Gtk.spinButtonSetValue lengthSpin 16
+    defaultLength <- ladePasswortLaenge
+    Gtk.spinButtonSetValue lengthSpin (fromIntegral defaultLength)
+
+    _ <- Gtk.on lengthSpin #valueChanged $ do
+        value <- Gtk.spinButtonGetValueAsInt lengthSpin
+        speicherePasswortLaenge (fromIntegral value)
 
     Gtk.boxPackStart box lengthSpin False False 0
 
@@ -145,6 +189,13 @@ zeigePasswortFenster parent sprache = do
     Gtk.boxPackStart box entropyLabel False False 0
     Gtk.boxPackStart box strengthLabel False False 0
 
+    entropyNote <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack (entropieHinweis sprache))
+        , (#halign Gtk.:= Gtk.AlignStart)
+        , (#wrap Gtk.:= True)
+        ]
+    Gtk.boxPackStart box entropyNote False False 0
+
     _ <- Gtk.on generateButton #clicked $ do
         laenge <- Gtk.spinButtonGetValueAsInt lengthSpin
 
@@ -171,37 +222,23 @@ zeigePasswortFenster parent sprache = do
                     (T.pack (passwortOptionFehltStatus sprache))
 
             else do
-                passwort <- Core.erzeugePasswort
+                result <- try (Core.erzeugePasswort
                     (fromIntegral laenge)
-                    zeichensatz
+                    zeichensatz) :: IO (Either IOException String)
 
-                let entropie =
-                        Core.berechneEntropie
-                            (fromIntegral laenge)
-                            (length zeichensatz)
-
-                    staerke =
-                        Core.bewerteEntropie entropie
-
-                buffer <- Gtk.textViewGetBuffer resultView
-
-                Gtk.textBufferSetText
-                    buffer
-                    (T.pack passwort)
-                    (-1)
-
-                kopiereZwischenablage passwort
-
-                Gtk.labelSetText statusLabel
-                    (T.pack (passwortKopiert sprache))
-
-                Gtk.labelSetText entropyLabel
-                    (T.pack
-                        (passwortEntropie sprache entropie))
-
-                Gtk.labelSetText strengthLabel
-                    (T.pack
-                        (passwortStaerke sprache staerke))
+                case result of
+                    Left _ -> Gtk.labelSetText statusLabel (T.pack (generierungsFehler sprache))
+                    Right passwort -> do
+                        let entropie = Core.berechneEntropie
+                                (fromIntegral laenge) (length zeichensatz)
+                            staerke = Core.bewerteEntropie entropie
+                        buffer <- Gtk.textViewGetBuffer resultView
+                        Gtk.textBufferSetText buffer (T.pack passwort) (-1)
+                        copied <- kopiereZwischenablage passwort
+                        Gtk.labelSetText statusLabel
+                            (T.pack (either (const (clipboardFehler sprache)) (const (passwortKopiert sprache)) copied))
+                        Gtk.labelSetText entropyLabel (T.pack (passwortEntropie sprache entropie))
+                        Gtk.labelSetText strengthLabel (T.pack (passwortStaerke sprache staerke))
 
     closeButton <- Gtk.new Gtk.Button
         [ (#label Gtk.:= T.pack (passwortSchliessen sprache))

@@ -12,8 +12,10 @@
   <strong>Secure · Lightweight · Open Source · Haskell · GTK</strong>
 </p>
 
+**Language:** English · [Deutsch](README.de.md)
+
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.0.0-2ea44f?style=for-the-badge">
+  <img src="https://img.shields.io/badge/version-2.1.0-2ea44f?style=for-the-badge">
   <img src="https://img.shields.io/badge/platform-Linux-333333?style=for-the-badge&logo=linux">
   <img src="https://img.shields.io/badge/Debian-13-A81D33?style=for-the-badge&logo=debian">
   <img src="https://img.shields.io/badge/Haskell-5e5086?style=for-the-badge&logo=haskell">
@@ -61,10 +63,11 @@ Generated passwords are automatically copied to the clipboard.
 
 Zufallswerk provides two different passphrase methods.
 
-#### 🇩🇪 Word-based passphrases
+#### 🌍 Word-based passphrases
 
-Generate passphrases from a bundled German word list containing
-**7,776 words**.
+Choose between two bundled Diceware-style word lists, each containing
+**7,776 words**: German or the English EFF Large Wordlist. The selected list
+is remembered for the next launch.
 
 Example:
 
@@ -75,6 +78,10 @@ pracht-crashtest-anziehen-entgangen
 The number of words can be configured from **2–36**.
 
 The separator can also be customized.
+
+The English list is provided by the [Electronic Frontier Foundation](https://www.eff.org/dice)
+and is distributed under [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/).
+Attribution and source details are included in the Debian package.
 
 #### 🧩 Random character blocks
 
@@ -101,6 +108,11 @@ This mode does not require the word list.
 
 Zufallswerk calculates the theoretical entropy of generated passwords
 and passphrases.
+
+Entropy is a theoretical estimate. Password calculations assume uniform,
+independent choices from the selected character set; word passphrases sample
+from the list with replacement. It does not assess user behavior or constitute
+an independent security audit.
 
 The result is accompanied by a simple strength classification:
 
@@ -147,6 +159,8 @@ integrate naturally with dark and light Linux desktop environments.
 
 Generated passwords and passphrases are automatically copied to the
 clipboard so they can be used immediately.
+Clipboard errors are shown in the window. Clipboard integration uses `wl-copy` on Wayland and `xclip` on
+X11; the matching `wl-clipboard` or `xclip` package is required.
 
 ---
 
@@ -184,72 +198,17 @@ The application includes a dedicated About dialog with:
 ### Password Generator
 
 <p align="center">
-  <img src="assets/screenshots/password-weak.png"
-       width="600"
-       alt="Zufallswerk password generator with weak password">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/password-medium.png"
-       width="600"
-       alt="Zufallswerk password generator with medium password">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/password-strong.png"
+  <img src="assets/screenshots/password.png"
        width="700"
-       alt="Zufallswerk password generator with strong password">
+       alt="Zufallswerk password generator">
 </p>
 
 ### Word-based Passphrases
 
 <p align="center">
-  <img src="assets/screenshots/passphrase-weak.png"
+  <img src="assets/screenshots/passphrase.png"
        width="600"
-       alt="Zufallswerk weak word-based passphrase">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/passphrase-medium.png"
-       width="600"
-       alt="Zufallswerk medium word-based passphrase">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/passphrase-strong.png"
-       width="600"
-       alt="Zufallswerk strong word-based passphrase">
-</p>
-
-### Random Character Blocks
-
-Zufallswerk also provides a character-block mode for generating random
-alphanumeric passphrases.
-
-<p align="center">
-  <img src="assets/screenshots/sketchpads-weak.png"
-       width="600"
-       alt="Zufallswerk random character blocks with weak strength">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/sketchpads-medium.png"
-       width="600"
-       alt="Zufallswerk random character blocks with medium strength">
-</p>
-
-<p align="center">
-  <img src="assets/screenshots/sketchpads-strong.png"
-       width="600"
-       alt="Zufallswerk random character blocks with strong strength">
-</p>
-
-### Settings
-
-<p align="center">
-  <img src="assets/screenshots/Settings.png"
-       width="500"
-       alt="Zufallswerk settings">
+       alt="Zufallswerk passphrase generator">
 </p>
 
 ### About
@@ -293,6 +252,7 @@ For building Zufallswerk from source, you need:
 - GHC 9.6.x
 - Cabal
 - GTK development libraries
+- `wl-clipboard` on Wayland or `xclip` on X11 for clipboard integration
 
 The project is developed and tested on **Debian 13 (Trixie)**.
 
@@ -329,20 +289,24 @@ A Debian package can be built directly from the project:
 ./build-deb.sh
 ```
 
-This creates:
+This creates a package for the current system architecture, for example:
 
 ```text
-zufallswerk_2.0.0_amd64.deb
+zufallswerk_2.1.0_amd64.deb
 ```
 
 Install the package with:
 
 ```bash
-sudo apt install ./zufallswerk_2.0.0_amd64.deb
+sudo apt install ./zufallswerk_2.1.0_amd64.deb
 ```
 
-The package includes the application, desktop entry, icon,
-GTK stylesheet and German word list.
+The package includes the application, desktop entry, icon, GTK stylesheet and
+both word lists: `words_de.txt` and the English EFF list `words_en_eff.txt`.
+They are installed under `/usr/share/zufallswerk/words/`. The EFF list's
+license and attribution are included in the package documentation. Push a
+version tag such as `v2.1.0` to build a Debian package and create or update a
+GitHub Release automatically.
 
 The Debian package has been successfully built, installed and tested
 on **Debian 13 (Trixie)**.
@@ -359,8 +323,13 @@ Zufallswerk/
 │   ├── logo/
 │   │   └── zufallswerk-256.png
 │   ├── screenshots/
+│   │   ├── about.png
+│   │   ├── main-window.png
+│   │   ├── passphrase.png
+│   │   └── password.png
 │   └── words/
-│       └── words_de.txt
+│       ├── words_de.txt
+│       └── words_en_eff.txt
 ├── data/
 │   └── style.css
 ├── packaging/
@@ -374,6 +343,7 @@ Zufallswerk/
 │       └── Settings.hs
 ├── backup.sh
 ├── build-deb.sh
+├── .github/workflows/
 ├── CHANGELOG.md
 ├── LICENSE
 ├── README.md
@@ -421,9 +391,9 @@ responsibilities remain easy to understand.
 
 ## 📌 Development Status
 
-**Zufallswerk 2.0.0** is the current major version.
+**Zufallswerk 2.1.0** is the current version.
 
-The 2.0 release includes:
+The 2.1 release includes:
 
 - 🖥️ Modern GTK interface
 - 🔐 Password generation
@@ -434,13 +404,16 @@ The 2.0 release includes:
 - 📋 Clipboard integration
 - 🌍 German / English interface
 - 💾 Persistent language settings
+- 💾 Remembered password length and passphrase mode
+- 🇩🇪 German and English word lists
+- 🖥️ Wayland and X11 clipboard support
 - 🌙 GTK theme support
 - ℹ️ Native About dialog
 - ⚙️ Settings
 - 📦 Debian package
 
-The 2.0.0 release has been built, installed and tested on
-**Debian 13 (Trixie)**.
+The Debian package is built for the current system architecture. GitHub
+Actions creates or updates a release when a matching `v2.1.0` tag is pushed.
 
 ---
 
@@ -450,6 +423,9 @@ Suggestions, bug reports and improvements are welcome.
 
 If you find a problem or have an idea for improving Zufallswerk, feel
 free to open an issue or submit a pull request.
+
+GitHub Actions builds the application and runs core tests for pushes and pull
+requests. Run both locally with `cabal build all` and `cabal test all`.
 
 ---
 
