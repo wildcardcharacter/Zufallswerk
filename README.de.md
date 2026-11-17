@@ -10,6 +10,7 @@ Die Anwendung nutzt Haskell und GTK 3. [English documentation](README.md).
 - Deutsche oder englische Wortliste mit jeweils 7.776 Wörtern; die Auswahl bleibt gespeichert
 - Zufällige Zeichenblöcke mit einstellbarer Anzahl und Länge
 - Automatisches Kopieren in die Zwischenablage
+- Update-Prüfung über den neuesten GitHub-Release; Debian-Installationen können Updates nach Systemauthentifizierung installieren
 - Deutsche und englische Oberfläche; Spracheinstellung bleibt erhalten
 - Theoretische Entropieanzeige und Stärke-Klassifizierung
 
@@ -29,12 +30,17 @@ ebenfalls der Paketdokumentation bei.
 ## Installation und Start
 
 Das Debian-Paket wird im Projektordner mit `./build-deb.sh` erstellt und kann
-anschließend mit `sudo apt install ./zufallswerk_2.1.0_amd64.deb` installiert
+anschließend mit `sudo apt install ./zufallswerk_2.1.1_amd64.deb` installiert
 werden. Die Paketabhängigkeiten umfassen GTK 3 sowie `wl-clipboard` oder
-`xclip` für die Zwischenablage. Unter Wayland wird `wl-copy`, unter X11
-`xclip` verwendet.
+`xclip` für die Zwischenablage sowie Python 3 für die Update-Prüfung. Unter
+Wayland wird `wl-copy`, unter X11 `xclip` verwendet.
 
-Ein Versions-Tag wie `v2.1.0` baut automatisch ein Debian-Paket und erstellt
+Der Button **Updates prüfen** sucht nach dem neuesten GitHub-Release. Bei einer
+Installation aus einem Debian-Paket kann das passende Paket nach Bestätigung
+der Systemauthentifizierung heruntergeladen und installiert werden. Bei einem
+Start aus dem Quellcode öffnet der Button stattdessen die Release-Seite.
+
+Ein Versions-Tag wie `v2.1.1` baut automatisch ein Debian-Paket und erstellt
 oder aktualisiert den passenden GitHub-Release.
 
 Aus dem Quellcode bauen und starten:

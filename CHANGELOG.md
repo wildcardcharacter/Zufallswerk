@@ -4,6 +4,21 @@ All notable changes to **Zufallswerk** are documented in this file.
 
 ---
 
+## [2.1.1] — 2026-11-17
+
+### Added
+
+- Update checker for the latest GitHub release, with Debian package installation for packaged installs
+- Release page fallback for source builds and update availability details in German and English
+
+### Improved
+
+- Debian package declares Python 3 for release metadata and package downloads
+- Release CI installs the required GObject Introspection metadata and exposes GLib's GIR file to `haskell-gi`
+- README documentation describes update checks and the Debian package flow
+
+---
+
 ## [2.1.0] — 2026-10-21
 
 ### Added

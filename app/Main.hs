@@ -5,6 +5,7 @@ module Main where
 
 import qualified GI.Gtk as Gtk
 import qualified GI.Gdk as Gdk
+import qualified GI.GLib as GLib
 import qualified Data.Text as T
 import qualified GI.Gtk.Objects.CssProvider as CssProvider
 import qualified GI.Gtk.Objects.StyleContext as StyleContext
@@ -12,12 +13,16 @@ import Zufallswerk.Password
 import Zufallswerk.Passphrase
 import Zufallswerk.Language
 import Zufallswerk.Settings
-import System.Process (callCommand)
+import System.Process (callCommand, callProcess, createProcess, proc)
 import Paths_zufallswerk (version)
 import Data.Version (showVersion)
+import Data.Version (Version, parseVersion)
+import Text.ParserCombinators.ReadP (readP_to_S)
 import Data.IORef
-import Control.Monad (filterM)
+import Control.Concurrent (forkIO)
+import Control.Monad (filterM, void)
 import System.Directory (doesFileExist)
+import Zufallswerk.Updater
 
 aktualisiereHauptfenster :: Sprache
     -> Gtk.Label
@@ -28,6 +33,7 @@ aktualisiereHauptfenster :: Sprache
     -> Gtk.Label
     -> Gtk.Label
     -> Gtk.Label
+    -> Gtk.Button
     -> Gtk.Button
     -> Gtk.Button
     -> Gtk.Button
@@ -44,6 +50,7 @@ aktualisiereHauptfenster
     passphraseDescription
     settingsButton
     aboutButton
+    updateButton
     exitButton = do
 
     Gtk.labelSetText title
@@ -75,6 +82,9 @@ aktualisiereHauptfenster
 
     Gtk.buttonSetLabel aboutButton
         (T.pack (mainUeber sprache))
+
+    Gtk.buttonSetLabel updateButton
+        (T.pack (updateButtonText sprache))
 
     Gtk.buttonSetLabel exitButton
         (T.pack (mainBeenden sprache))
@@ -297,6 +307,14 @@ main = do
         aktuelleSprache <- readIORef spracheRef
         zeigeUeberDialog window aktuelleSprache
 
+    updateButton <- Gtk.new Gtk.Button
+        [ (#label Gtk.:= T.pack (updateButtonText sprache))
+        ]
+
+    _ <- Gtk.on updateButton #clicked $ do
+        aktuelleSprache <- readIORef spracheRef
+        pruefeUpdates window updateButton aktuelleSprache
+
     settingsButton <- Gtk.new Gtk.Button
         [ (#label Gtk.:= T.pack (mainEinstellungen sprache))
         ]
@@ -323,10 +341,12 @@ main = do
                 passphraseDescription
                 settingsButton
                 aboutButton
+                updateButton
                 exitButton
 
     Gtk.widgetSetName settingsButton "footer-button"
     Gtk.widgetSetName aboutButton "footer-button"
+    Gtk.widgetSetName updateButton "footer-button"
     Gtk.widgetSetName exitButton "footer-button"
 
     -- Beenden
@@ -334,6 +354,7 @@ main = do
 
     Gtk.boxPackEnd footer exitButton False False 0
     Gtk.boxPackEnd footer aboutButton False False 10
+    Gtk.boxPackEnd footer updateButton False False 10
     Gtk.boxPackEnd footer settingsButton False False 10
 
     Gtk.boxPackEnd mainBox footer False False 0
@@ -343,6 +364,156 @@ main = do
     Gtk.widgetShowAll window
 
     Gtk.main
+
+updateButtonText :: Sprache -> String
+updateButtonText Deutsch = "⬆ Updates prüfen"
+updateButtonText English = "⬆ Check for updates"
+
+pruefeUpdates :: Gtk.Window -> Gtk.Button -> Sprache -> IO ()
+pruefeUpdates parent button sprache = do
+    Gtk.widgetSetSensitive button False
+    Gtk.buttonSetLabel button (T.pack $ case sprache of
+        Deutsch -> "Prüfe Updates …"
+        English -> "Checking for updates …")
+    _ <- forkIO $ do
+        releaseResult <- latestRelease
+        installed <- installedPackageVersion
+        void $ GLib.idleAdd 0 $ do
+            Gtk.widgetSetSensitive button True
+            Gtk.buttonSetLabel button (T.pack (updateButtonText sprache))
+            case releaseResult of
+                Left problem -> zeigeHinweis parent sprache
+                    (case sprache of
+                        Deutsch -> "Updateprüfung fehlgeschlagen"
+                        English -> "Update check failed") problem
+                Right release -> zeigeUpdateErgebnis parent button sprache installed release
+            pure False
+    pure ()
+
+zeigeUpdateErgebnis :: Gtk.Window -> Gtk.Button -> Sprache -> Maybe String -> Release -> IO ()
+zeigeUpdateErgebnis parent button sprache installed release =
+    case parseVersionString (releaseVersion release) of
+        Nothing -> zeigeHinweis parent sprache title invalidText
+        Just latest -> case parseVersionString current of
+            Nothing -> zeigeHinweis parent sprache title invalidText
+            Just currentParsed
+                | latest <= currentParsed -> zeigeHinweis parent sprache upToDateTitle
+                    (case sprache of
+                        Deutsch -> "Du verwendest bereits Zufallswerk " ++ current ++ "."
+                        English -> "You are already using Zufallswerk " ++ current ++ ".")
+                | otherwise -> do
+                    let canInstall = maybe False (const True) installed
+                            && not (null (releaseAssetUrl release))
+                        prompt = case sprache of
+                            Deutsch -> "Installiert: " ++ current ++ "\nVerfügbar: " ++ releaseVersion release
+                                ++ "\n\nSoll das Update jetzt installiert werden?"
+                            English -> "Installed: " ++ current ++ "\nAvailable: " ++ releaseVersion release
+                                ++ "\n\nInstall this update now?"
+                        actionLabel = if canInstall
+                            then if sprache == Deutsch then "Update installieren" else "Install update"
+                            else if sprache == Deutsch then "Release-Seite öffnen" else "Open release page"
+                    accepted <- zeigeFrage parent sprache availableTitle prompt actionLabel
+                    if not accepted
+                        then pure ()
+                        else if canInstall
+                            then installiereRelease parent button sprache release
+                            else void (forkIO (callProcess "xdg-open" [releasePageUrl release]))
+  where
+    current = maybe (showVersion version) id installed
+    title = case sprache of
+        Deutsch -> "Updateprüfung fehlgeschlagen"
+        English -> "Update check failed"
+    invalidText = case sprache of
+        Deutsch -> "GitHub hat eine ungültige Versionsnummer zurückgegeben."
+        English -> "GitHub returned an invalid version number."
+    upToDateTitle = case sprache of
+        Deutsch -> "Zufallswerk ist aktuell"
+        English -> "Zufallswerk is up to date"
+    availableTitle = case sprache of
+        Deutsch -> "Update verfügbar"
+        English -> "Update available"
+
+parseVersionString :: String -> Maybe Version
+parseVersionString input = case readP_to_S parseVersion input of
+    (parsed, ""): _ -> Just parsed
+    _ -> Nothing
+
+installiereRelease :: Gtk.Window -> Gtk.Button -> Sprache -> Release -> IO ()
+installiereRelease parent button sprache release = do
+    Gtk.widgetSetSensitive button False
+    Gtk.buttonSetLabel button (T.pack $ if sprache == Deutsch then "Installiere Update …" else "Installing update …")
+    _ <- forkIO $ do
+        result <- installRelease release
+        void $ GLib.idleAdd 0 $ do
+            Gtk.widgetSetSensitive button True
+            Gtk.buttonSetLabel button (T.pack (updateButtonText sprache))
+            case result of
+                Left problem -> zeigeHinweis parent sprache
+                    (if sprache == Deutsch then "Update fehlgeschlagen" else "Update failed") problem
+                Right () -> do
+                    restart <- zeigeFrage parent sprache
+                        (if sprache == Deutsch then "Update installiert" else "Update installed")
+                        (if sprache == Deutsch
+                            then "Zufallswerk wurde aktualisiert. Jetzt neu starten?"
+                            else "Zufallswerk was updated. Restart now?")
+                        (if sprache == Deutsch then "Neu starten" else "Restart")
+                    if restart
+                        then do
+                            _ <- createProcess (proc "/usr/bin/zufallswerk" [])
+                            Gtk.mainQuit
+                        else pure ()
+            pure False
+    pure ()
+
+zeigeHinweis :: Gtk.Window -> Sprache -> String -> String -> IO ()
+zeigeHinweis parent sprache title message = do
+    dialog <- Gtk.new Gtk.Dialog
+        [ (#title Gtk.:= T.pack title)
+        , (#transientFor Gtk.:= parent)
+        , (#modal Gtk.:= True)
+        , (#defaultWidth Gtk.:= 420)
+        ]
+    area <- Gtk.dialogGetContentArea dialog
+    label <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack message)
+        , (#wrap Gtk.:= True)
+        , (#selectable Gtk.:= True)
+        , (#marginStart Gtk.:= 24)
+        , (#marginEnd Gtk.:= 24)
+        , (#marginTop Gtk.:= 20)
+        , (#marginBottom Gtk.:= 20)
+        ]
+    Gtk.containerAdd area label
+    _ <- Gtk.dialogAddButton dialog (T.pack $ if sprache == Deutsch then "OK" else "OK") 1
+    Gtk.widgetShowAll dialog
+    _ <- Gtk.dialogRun dialog
+    Gtk.widgetDestroy dialog
+
+zeigeFrage :: Gtk.Window -> Sprache -> String -> String -> String -> IO Bool
+zeigeFrage parent sprache title message actionLabel = do
+    dialog <- Gtk.new Gtk.Dialog
+        [ (#title Gtk.:= T.pack title)
+        , (#transientFor Gtk.:= parent)
+        , (#modal Gtk.:= True)
+        , (#defaultWidth Gtk.:= 460)
+        ]
+    area <- Gtk.dialogGetContentArea dialog
+    label <- Gtk.new Gtk.Label
+        [ (#label Gtk.:= T.pack message)
+        , (#wrap Gtk.:= True)
+        , (#selectable Gtk.:= True)
+        , (#marginStart Gtk.:= 24)
+        , (#marginEnd Gtk.:= 24)
+        , (#marginTop Gtk.:= 20)
+        , (#marginBottom Gtk.:= 20)
+        ]
+    Gtk.containerAdd area label
+    _ <- Gtk.dialogAddButton dialog (T.pack $ if sprache == Deutsch then "Später" else "Later") 0
+    _ <- Gtk.dialogAddButton dialog (T.pack actionLabel) 1
+    Gtk.widgetShowAll dialog
+    response <- Gtk.dialogRun dialog
+    Gtk.widgetDestroy dialog
+    pure (response == 1)
 
 zeigeUeberDialog :: Gtk.Window -> Sprache -> IO ()
 zeigeUeberDialog parent sprache = do

@@ -94,7 +94,7 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: Markus <wildcardcharacter@icloud.com>
-Depends: libgtk-3-0t64, xclip | wl-clipboard
+Depends: libgtk-3-0t64, xclip | wl-clipboard, python3
 Homepage: https://wildcardcharacter.github.io
 Description: Secure password and passphrase generator
  Zufallswerk is a secure password and passphrase generator

@@ -15,7 +15,7 @@
 **Language:** English · [Deutsch](README.de.md)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.1.0-2ea44f?style=for-the-badge">
+  <img src="https://img.shields.io/badge/version-2.1.1-2ea44f?style=for-the-badge">
   <img src="https://img.shields.io/badge/platform-Linux-333333?style=for-the-badge&logo=linux">
   <img src="https://img.shields.io/badge/Debian-13-A81D33?style=for-the-badge&logo=debian">
   <img src="https://img.shields.io/badge/Haskell-5e5086?style=for-the-badge&logo=haskell">
@@ -42,6 +42,8 @@ online service to generate passwords or passphrases.
 ---
 
 ## 🚀 Features
+
+- ⬆️ Check for updates from GitHub Releases; Debian package installations can install updates after system authentication
 
 ### 🔐 Password Generator
 
@@ -292,21 +294,27 @@ A Debian package can be built directly from the project:
 This creates a package for the current system architecture, for example:
 
 ```text
-zufallswerk_2.1.0_amd64.deb
+zufallswerk_2.1.1_amd64.deb
 ```
 
 Install the package with:
 
 ```bash
-sudo apt install ./zufallswerk_2.1.0_amd64.deb
+sudo apt install ./zufallswerk_2.1.1_amd64.deb
 ```
 
 The package includes the application, desktop entry, icon, GTK stylesheet and
 both word lists: `words_de.txt` and the English EFF list `words_en_eff.txt`.
 They are installed under `/usr/share/zufallswerk/words/`. The EFF list's
-license and attribution are included in the package documentation. Push a
-version tag such as `v2.1.0` to build a Debian package and create or update a
+license and attribution are included in the package documentation. Python 3
+is included as a dependency for release checks and package downloads. Push a
+version tag such as `v2.1.1` to build a Debian package and create or update a
 GitHub Release automatically.
+
+The **Check for updates** button checks the latest GitHub release. When
+Zufallswerk was installed from a Debian package, it can download and install
+the matching package after you approve the system authentication prompt.
+When running a source build, the button opens the release page instead.
 
 The Debian package has been successfully built, installed and tested
 on **Debian 13 (Trixie)**.
@@ -391,7 +399,7 @@ responsibilities remain easy to understand.
 
 ## 📌 Development Status
 
-**Zufallswerk 2.1.0** is the current version.
+**Zufallswerk 2.1.1** is the current version.
 
 The 2.1 release includes:
 
@@ -413,7 +421,7 @@ The 2.1 release includes:
 - 📦 Debian package
 
 The Debian package is built for the current system architecture. GitHub
-Actions creates or updates a release when a matching `v2.1.0` tag is pushed.
+Actions creates or updates a release when a matching `v2.1.1` tag is pushed.
 
 ---
 
